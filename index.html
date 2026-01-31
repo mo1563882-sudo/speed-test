@@ -1,31 +1,62 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فحص سرعة الإنترنت - تكنوفيا</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="test-container">
-        <h2>أداة تكنوفيا لفحص السرعة 2026</h2>
-        <div class="gauge-area">
-            <div id="speed-value">0</div>
-            <div class="unit">Mbps</div>
-        </div>
-        <button id="start-btn">بدء الفحص الآن</button>
-        <div class="results">
-            <p>التحميل: <span id="download">-</span> Mbps</p>
-            <p>الرفع: <span id="upload">-</span> Mbps</p>
-            <p>زمن الاستجابة (Ping): <span id="ping">-</span> ms</p>
-        </div>
-    </div>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #010409; /* أسود ملكي عميق */
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
 
-    <script>
-        // هنا سنضع سكربت الفحص لاحقاً أو نربطه بملف خارجي
-        document.getElementById('start-btn').addEventListener('click', function() {
-            alert('سيتم بدء الفحص.. تأكد من رفع ملفات الاختبار أولاً!');
-        });
-    </script>
-</body>
-</html>
+.test-container {
+    background: #0d1117;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(88, 166, 255, 0.2); /* هالة زرقاء خفيفة */
+    text-align: center;
+    width: 320px;
+    border: 2px solid #58a6ff; /* إطار أزرق صريح */
+}
+
+h2 { color: #58a6ff; font-size: 1.3rem; margin-bottom: 20px; }
+
+.gauge-area {
+    margin: 20px 0;
+    font-size: 4rem;
+    font-weight: bold;
+    color: #58a6ff; /* العداد صار أزرق */
+    text-shadow: 0 0 15px rgba(88, 166, 255, 0.5);
+}
+
+.unit { font-size: 1.2rem; color: #8b949e; display: block; }
+
+#start-btn {
+    background: #58a6ff;
+    color: #ffffff;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(88, 166, 255, 0.3);
+}
+
+#start-btn:hover { 
+    background: #1f6feb; 
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(88, 166, 255, 0.4);
+}
+
+.results {
+    margin-top: 25px;
+    text-align: right;
+    border-top: 1px solid #30363d;
+    padding-top: 15px;
+}
+
+.results p { margin: 8px 0; color: #c9d1d9; font-size: 0.95rem; }
+
+.results span { color: #58a6ff; font-weight: bold; }
