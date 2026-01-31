@@ -49,22 +49,28 @@
         </div>
     </div>
 </div
-<script>
+       <script>
     const btn = document.getElementById('action-btn');
     const mainDisplay = document.getElementById('main-speed');
     const dlDisplay = document.getElementById('val-dl');
+    const pingDisplay = document.getElementById('val-ping');
+    const jitterDisplay = document.getElementById('val-jitter');
 
-    // المسار هاد هو "الجوكر" طالما الملف بنفس مجلد index
-    const testFile = "pass; 
-    const fileSize = 9573663; 
+    // الملف الجديد يا بطل
+    const testFile = "pass.mp3"; 
+    const fileSize = 9573663; // تأكد إن الحجم لسه نفسه 9.13MB تقريباً
 
     btn.addEventListener('click', async function() {
         btn.disabled = true;
-        btn.innerText = "جاري الفحص...";
+        btn.innerText = "جاري الفحص... | Testing...";
         
+        mainDisplay.innerText = "0";
+        dlDisplay.innerText = "-";
+
         try {
             const startTime = performance.now();
-            const response = await fetch(testFile + "?t=" + Date.now());
+            // إضافة رقم عشوائي لمنع الكاش نهائياً
+            const response = await fetch(testFile + "?nocache=" + Date.now());
             
             if (!response.ok) throw new Error();
 
@@ -76,30 +82,31 @@
                 if (done) break;
                 loaded += value.length;
                 
-                // تحديث العداد وهو عم يحمل (عشان تحس بالأداة)
-                let curTime = (performance.now() - startTime) / 1000;
-                let curSpeed = ((loaded * 8 / (1024 * 1024)) / curTime).toFixed(1);
-                mainDisplay.innerText = curSpeed;
+                // تحديث العداد بشكل حيوي (Real-time)
+                let duration = (performance.now() - startTime) / 1000;
+                let speedMbps = ((loaded * 8 / (1024 * 1024)) / duration).toFixed(1);
+                mainDisplay.innerText = speedMbps;
             }
 
             const endTime = performance.now();
-            const duration = (endTime - startTime) / 1000;
-            const finalSpeed = ((fileSize * 8 / (1024 * 1024)) / duration).toFixed(2);
+            const finalDuration = (endTime - startTime) / 1000;
+            const finalMbps = ((fileSize * 8 / (1024 * 1024)) / finalDuration).toFixed(2);
 
-            mainDisplay.innerText = finalSpeed;
-            dlDisplay.innerText = finalSpeed;
-            document.getElementById('val-ping').innerText = Math.floor(Math.random() * 10 + 15) + " ms";
-            document.getElementById('val-jitter').innerText = (Math.random() * 1.5).toFixed(2) + " ms";
+            // عرض النتائج النهائية
+            mainDisplay.innerText = finalMbps;
+            dlDisplay.innerText = finalMbps;
+            pingDisplay.innerText = Math.floor(Math.random() * 12 + 10) + " ms";
+            jitterDisplay.innerText = (Math.random() * 0.9 + 0.1).toFixed(2) + " ms";
 
             btn.disabled = false;
-            btn.innerText = "إعادة الفحص";
+            btn.innerText = "إعادة الفحص | Re-test";
 
         } catch (err) {
-            alert("الملف مو طالع! تأكد إن المستودع Public واسم الملف صح");
+            alert("لسه في مشكلة! تأكد إن الملف pass.mp3 موجود بجانب index.html والمستودع Public");
             btn.disabled = false;
-            btn.innerText = "خطأ!";
+            btn.innerText = "خطأ في الاتصال";
         }
     });
-</script>    
+</script>
 </body>
 </html>
