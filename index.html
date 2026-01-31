@@ -1,110 +1,168 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تكنوفيا - اختبار السرعة 2026</title>
-    <style>
-        :root { --sora-blue: #007bff; --sora-dark: #222; --white: #ffffff; }
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; direction: rtl; }
-        .speedtest-card { background: var(--white); width: 95%; max-width: 450px; padding: 30px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border: 1px solid #e0e0e0; }
-        .logo-title { color: var(--sora-blue); font-size: 24px; font-weight: 800; margin-bottom: 5px; }
-        .subtitle { color: #666; font-size: 15px; margin-bottom: 30px; }
-        .gauge-container { width: 180px; height: 180px; margin: 0 auto 25px; border: 10px solid #f8f9fa; border-top: 10px solid var(--sora-blue); border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        #main-speed { font-size: 48px; font-weight: 900; color: var(--sora-dark); line-height: 1; }
-        .mbps-unit { color: var(--sora-blue); font-size: 16px; font-weight: 600; margin-top: 5px; }
-        .results-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 25px; padding-top: 20px; border-top: 2px solid #f1f1f1; }
-        .res-label { font-size: 12px; color: #888; font-weight: 600; display: block; margin-bottom: 5px; }
-        .res-value { font-size: 16px; font-weight: 700; color: var(--sora-blue); }
-        #action-btn { background-color: var(--sora-blue); color: var(--white); border: none; width: 100%; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 15px; }
-        #action-btn:hover { background-color: #0056b3; }
-        #action-btn:disabled { background-color: #ccc; cursor: not-allowed; }
-    </style>
-</head>
-<body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technovia Speed Test</title>
 
+<style>
+:root { --blue:#007bff; --dark:#222; }
+body{
+    background:#f0f2f5;font-family:tahoma;
+    display:flex;justify-content:center;align-items:center;
+    min-height:100vh;margin:0
+}
+.speedtest-card{
+    background:#fff;width:95%;max-width:450px;
+    padding:30px;border-radius:22px;
+    box-shadow:0 15px 35px rgba(0,0,0,.1);
+    text-align:center
+}
+.logo-title{color:var(--blue);font-size:24px;font-weight:800}
+.subtitle{color:#666;margin-bottom:25px}
+.gauge{
+    width:180px;height:180px;margin:0 auto 20px;
+    border:10px solid #f1f1f1;border-top:10px solid var(--blue);
+    border-radius:50%;display:flex;flex-direction:column;
+    justify-content:center;align-items:center
+}
+#main-speed{font-size:48px;font-weight:900;color:var(--dark)}
+.mbps{color:var(--blue);font-weight:700}
+.grid{
+    display:grid;grid-template-columns:1fr 1fr 1fr;
+    gap:15px;margin-top:20px;padding-top:15px;
+    border-top:2px solid #eee
+}
+.lbl{font-size:12px;color:#777}
+.val{font-weight:700;color:var(--blue)}
+button{
+    width:100%;padding:15px;margin-top:15px;
+    background:var(--blue);color:#fff;border:0;
+    border-radius:12px;font-size:18px;font-weight:700;
+    cursor:pointer
+}
+button:disabled{background:#bbb}
+</style>
+</head>
+
+<body>
 <div class="speedtest-card">
     <div class="logo-title">Technovia Speed Test</div>
-    <div class="subtitle">تكنوفيا لاختبار سرعة الأنترنت</div>
+    <div class="subtitle">اختبار سرعة الإنترنت الذكي</div>
 
-    <div class="gauge-container">
+    <div class="gauge">
         <div id="main-speed">0</div>
-        <div class="mbps-unit">Mbps</div>
+        <div class="mbps">Mbps</div>
     </div>
 
-    <button id="action-btn">اضغط للبدء | Start Test</button>
+    <button id="btn">بدء الاختبار</button>
 
-    <div class="results-grid">
-        <div class="res-box">
-            <span class="res-label">تحميل<br>Download</span>
-            <span class="res-value" id="val-dl">-</span>
-        </div>
-        <div class="res-box">
-            <span class="res-label">استجابة<br>Ping</span>
-            <span class="res-value" id="val-ping">-</span>
-        </div>
-        <div class="res-box">
-            <span class="res-label">استقرار<br>Jitter</span>
-            <span class="res-value" id="val-jitter">-</span>
-        </div>
+    <div class="grid">
+        <div><div class="lbl">تحميل</div><div class="val" id="dl">-</div></div>
+        <div><div class="lbl">Ping</div><div class="val" id="ping">-</div></div>
+        <div><div class="lbl">Jitter</div><div class="val" id="jitter">-</div></div>
     </div>
 </div>
 
 <script>
-    const btn = document.getElementById('action-btn');
-    const mainDisplay = document.getElementById('main-speed');
-    const dlDisplay = document.getElementById('val-dl');
-    const pingDisplay = document.getElementById('val-ping');
-    const jitterDisplay = document.getElementById('val-jitter');
+const btn = document.getElementById("btn");
+const main = document.getElementById("main-speed");
+const dlEl = document.getElementById("dl");
+const pingEl = document.getElementById("ping");
+const jitterEl = document.getElementById("jitter");
 
-    // ملف خارجي لضمان الدقة وعدم التلاعب بالنتائج من الكاش
-    const testFile = "https://speed.hetzner.de/10MB.bin"; 
+const MIRRORS = {
+    small: [
+        "https://speed.cloudflare.com/__down?bytes=3000000",
+        "pass.mp3"
+    ],
+    medium: [
+        "https://speed.cloudflare.com/__down?bytes=20000000",
+        "https://proof.ovh.net/files/20Mb.dat"
+    ],
+    large: [
+        "https://speed.cloudflare.com/__down?bytes=50000000",
+        "https://proof.ovh.net/files/50Mb.dat"
+    ]
+};
 
-    btn.addEventListener('click', async function() {
-        btn.disabled = true;
-        btn.innerText = "جاري الاختبار...";
-        mainDisplay.innerText = "0";
-        dlDisplay.innerText = "-";
-        pingDisplay.innerText = "-";
-        jitterDisplay.innerText = "-";
+async function getWorking(urls){
+    for (let u of urls){
+        try{
+            const r = await fetch(u,{method:"HEAD",cache:"no-store"});
+            if(r.ok) return u;
+        }catch(e){}
+    }
+    throw "NO_SOURCE";
+}
 
-        try {
-            const startTime = performance.now();
-            const response = await fetch(testFile + "?nocache=" + Math.random(), {
-                mode: 'cors',
-                cache: 'no-store'
-            });
+async function measurePing(){
+    let t=[];
+    for(let i=0;i<5;i++){
+        const s=performance.now();
+        await fetch("https://speed.cloudflare.com/__down?bytes=1",{cache:"no-store"});
+        t.push(performance.now()-s);
+    }
+    const avg=t.reduce((a,b)=>a+b)/t.length;
+    const jit=Math.sqrt(t.map(x=>(x-avg)**2).reduce((a,b)=>a+b)/t.length);
+    return {ping:Math.round(avg),jitter:jit.toFixed(2)};
+}
 
-            if (!response.ok) throw new Error();
+async function downloadTest(url){
+    const res=await fetch(url+"?r="+Math.random(),{cache:"no-store"});
+    const reader=res.body.getReader();
+    const start=performance.now();
+    let validStart=0,bytes=0;
 
-            const reader = response.body.getReader();
-            let loaded = 0;
+    while(true){
+        const {done,value}=await reader.read();
+        if(done) break;
 
-            while(true) {
-                const {done, value} = await reader.read();
-                if (done) break;
-                loaded += value.length;
-                
-                let duration = (performance.now() - startTime) / 1000;
-                let currentMbps = ((loaded * 8 / (1024 * 1024)) / duration).toFixed(2);
-                mainDisplay.innerText = currentMbps;
-            }
-
-            const finalMbps = mainDisplay.innerText;
-            dlDisplay.innerText = finalMbps;
-            pingDisplay.innerText = Math.floor(Math.random() * 10 + 20) + " ms";
-            jitterDisplay.innerText = (Math.random() * 0.5 + 0.1).toFixed(2) + " ms";
-
-            btn.disabled = false;
-            btn.innerText = "إعادة الاختبار";
-
-        } catch (err) {
-            alert("حدث خطأ في الاتصال! تأكد من جودة الإنترنت لديك.");
-            btn.disabled = false;
-            btn.innerText = "فشل الاختبار";
+        const now=performance.now();
+        if(now-start>2000){
+            if(!validStart) validStart=now;
+            bytes+=value.length;
+            const sec=(now-validStart)/1000;
+            const mbps=((bytes*8)/(1024*1024))/sec;
+            main.innerText=mbps.toFixed(1);
         }
-    });
-</script>
+        if(now-start>12000) break;
+    }
+    return main.innerText;
+}
 
+btn.onclick=async()=>{
+    btn.disabled=true;
+    btn.innerText="جاري القياس...";
+    main.innerText="0"; dlEl.innerText=pingEl.innerText=jitterEl.innerText="-";
+
+    try{
+        // Ping & Jitter
+        const pj=await measurePing();
+        pingEl.innerText=pj.ping+" ms";
+        jitterEl.innerText=pj.jitter+" ms";
+
+        // Auto Scale (اختبار تمهيدي)
+        const preUrl=await getWorking(MIRRORS.small);
+        const preSpeed=await downloadTest(preUrl);
+
+        let finalGroup = preSpeed < 10 ? MIRRORS.small :
+                         preSpeed < 40 ? MIRRORS.medium :
+                         MIRRORS.large;
+
+        const finalUrl=await getWorking(finalGroup);
+        const finalSpeed=await downloadTest(finalUrl);
+
+        dlEl.innerText=finalSpeed+" Mbps";
+        btn.innerText="إعادة الاختبار";
+        btn.disabled=false;
+
+    }catch(e){
+        alert("فشل الاختبار – تحقق من الاتصال");
+        btn.disabled=false;
+        btn.innerText="إعادة المحاولة";
+    }
+};
+</script>
 </body>
 </html>
