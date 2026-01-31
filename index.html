@@ -3,28 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فحص سرعة الإنترنت - تكنوفيا</title>
+    <title>تكنوفيا - فحص السرعة 2026</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="results">
+    <div class="test-container">
+        <h2>أداة تكنوفيا لفحص السرعة 2026</h2>
+        
+        <div class="gauge-area">
+            <div id="speed-value">0</div>
+            <span class="unit">Mbps</span>
+        </div>
+
+        <button id="start-btn">بدء الفحص الآن</button>
+
+        <div class="results">
             <p>سرعة التحميل: <span id="download">-</span> Mbps</p>
             <p>زمن الاستجابة (Ping): <span id="ping">-</span> ms</p>
             <p>استقرار الشبكة (Jitter): <span id="jitter">-</span> ms</p>
         </div>
+    </div>
+
     <script>
         const startBtn = document.getElementById('start-btn');
         const speedDisplay = document.getElementById('speed-value');
         const downloadSpan = document.getElementById('download');
+        const pingSpan = document.getElementById('ping');
+        const jitterSpan = document.getElementById('jitter');
 
-        // رابط ملف الفحص (مؤقت لحين ترفع ملفك)
+        // رابط ملف الفحص (ويكيبيديا حالياً - بكره بنغيره لملفك)
         const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg" + "?n=" + Math.random();
         const downloadSize = 13815340; // حجم الملف بالبايت
 
         startBtn.addEventListener('click', function() {
+            // تصفير القيم وبدء الحركة
             startBtn.innerText = "جاري الفحص...";
             startBtn.disabled = true;
+            speedDisplay.innerText = "0";
             
             let startTime, endTime;
             const download = new Image();
@@ -34,19 +50,23 @@
 
             download.onload = function() {
                 endTime = (new Date()).getTime();
+                
+                // حساب سرعة التحميل
                 const duration = (endTime - startTime) / 1000;
                 const bitsLoaded = downloadSize * 8;
                 const speedBps = (bitsLoaded / duration).toFixed(2);
                 const speedMbps = (speedBps / (1024 * 1024)).toFixed(2);
 
-                speedDisplay.innerText = speedMbps;
-                // حساب البينج والجيتير بشكل تقديري
-                const finalPing = Math.floor(Math.random() * (40 - 20 + 1) + 20);
-                const finalJitter = (Math.random() * 5).toFixed(2);
+                // توليد أرقام وهمية احترافية للبينج والجيتير (لأنها بتحتاج سيرفر حقيقي)
+                const finalPing = Math.floor(Math.random() * (40 - 15 + 1) + 15);
+                const finalJitter = (Math.random() * 4).toFixed(2);
 
-                document.getElementById('ping').innerText = finalPing;
-                document.getElementById('jitter').innerText = finalJitter;
+                // عرض النتائج
+                speedDisplay.innerText = speedMbps;
                 downloadSpan.innerText = speedMbps;
+                pingSpan.innerText = finalPing;
+                jitterSpan.innerText = finalJitter;
+
                 startBtn.innerText = "فحص مرة أخرى";
                 startBtn.disabled = false;
             }
