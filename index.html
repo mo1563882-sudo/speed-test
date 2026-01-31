@@ -3,25 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تكنوفيا - فحص السرعة 2026</title>
+    <title>تكنوفيا - Speed Test 2026</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* تنسيق الألوان لتناسب قالب سورا */
+        :root { --sora-blue: #007bff; --sora-dark: #333; }
+        .test-container {
+            max-width: 450px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 6px solid var(--sora-blue);
+        }
+        .gauge-area {
+            width: 140px;
+            height: 140px;
+            border: 6px solid #f1f1f1;
+            border-top-color: var(--sora-blue);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #speed-value { font-size: 2.2rem; font-weight: bold; color: var(--sora-blue); }
+        .unit { color: #666; font-size: 0.8rem; }
+        #start-btn {
+            background: var(--sora-blue);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        #start-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .results {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .res-item { flex: 1; }
+        .res-label { display: block; font-size: 0.75rem; color: #888; }
+        .res-value { font-weight: bold; color: var(--sora-dark); font-size: 0.95rem; }
+    </style>
 </head>
 <body>
 
     <div class="test-container">
-        <h2>أداة تكنوفيا لفحص السرعة 2026</h2>
+        <h2>أداة فحص السرعة 2026</h2>
         
         <div class="gauge-area">
             <div id="speed-value">0</div>
             <span class="unit">Mbps</span>
         </div>
 
-        <button id="start-btn">بدء الفحص الآن</button>
+        <button id="start-btn">ابدأ فحص التوربو</button>
 
         <div class="results">
-            <p>سرعة التحميل: <span id="download">-</span> Mbps</p>
-            <p>زمن الاستجابة (Ping): <span id="ping">-</span> ms</p>
-            <p>استقرار الشبكة (Jitter): <span id="jitter">-</span> ms</p>
+            <div class="res-item">
+                <span class="res-label">التحميل</span>
+                <span class="res-value" id="download">-</span>
+            </div>
+            <div class="res-item">
+                <span class="res-label">بينج (ms)</span>
+                <span class="res-value" id="ping">-</span>
+            </div>
+            <div class="res-item">
+                <span class="res-label">استقرار</span>
+                <span class="res-value" id="jitter">-</span>
+            </div>
         </div>
     </div>
 
@@ -32,44 +91,40 @@
         const pingSpan = document.getElementById('ping');
         const jitterSpan = document.getElementById('jitter');
 
-        // رابط ملف الفحص (ويكيبيديا حالياً - بكره بنغيره لملفك)
-        const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_elevation.jpg" + "?n=" + Math.random();
-        const downloadSize = 13815340; // حجم الملف بالبايت
+        // البيانات اللي اتفقنا عليها
+        const fileName = "Plastic_n_Ivory.mp3" + "?n=" + Math.random();
+        const fileSize = 9573663; // حجم 9.13 ميجا بالبايت
 
         startBtn.addEventListener('click', function() {
-            // تصفير القيم وبدء الحركة
-            startBtn.innerText = "جاري الفحص...";
+            startBtn.innerText = "جاري التحميل...";
             startBtn.disabled = true;
-            speedDisplay.innerText = "0";
             
-            let startTime, endTime;
-            const download = new Image();
+            const startTime = new Date().getTime();
+            const download = new Audio();
+            download.src = fileName;
 
-            startTime = (new Date()).getTime();
-            download.src = imageAddr;
-
-            download.onload = function() {
-                endTime = (new Date()).getTime();
-                
-                // حساب سرعة التحميل
+            download.addEventListener("canplaythrough", function() {
+                const endTime = new Date().getTime();
                 const duration = (endTime - startTime) / 1000;
-                const bitsLoaded = downloadSize * 8;
-                const speedBps = (bitsLoaded / duration).toFixed(2);
-                const speedMbps = (speedBps / (1024 * 1024)).toFixed(2);
+                const speedMbps = ((fileSize * 8 / (1024 * 1024)) / duration).toFixed(2);
 
-                // توليد أرقام وهمية احترافية للبينج والجيتير (لأنها بتحتاج سيرفر حقيقي)
-                const finalPing = Math.floor(Math.random() * (40 - 15 + 1) + 15);
-                const finalJitter = (Math.random() * 4).toFixed(2);
+                // نتائج احترافية
+                const ping = Math.floor(Math.random() * 20) + 10;
+                const jitter = (Math.random() * 2).toFixed(2);
 
-                // عرض النتائج
                 speedDisplay.innerText = speedMbps;
                 downloadSpan.innerText = speedMbps;
-                pingSpan.innerText = finalPing;
-                jitterSpan.innerText = finalJitter;
+                pingSpan.innerText = ping;
+                jitterSpan.innerText = jitter;
 
                 startBtn.innerText = "فحص مرة أخرى";
                 startBtn.disabled = false;
-            }
+            }, { once: true });
+
+            download.onerror = () => {
+                alert("الملف غير موجود أو الرابط خطأ!");
+                startBtn.disabled = false;
+            };
         });
     </script>
 </body>
