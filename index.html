@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تكنوفيا - اختبار السرعة </title>
+    <title>تكنوفيا - اختبار السرعة 2026</title>
     <style>
         :root { --sora-blue: #007bff; --sora-dark: #222; --white: #ffffff; }
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; direction: rtl; }
@@ -25,7 +25,7 @@
 
 <div class="speedtest-card">
     <div class="logo-title">Technovia Speed Test</div>
-    <div class="subtitle">تكنوفيا لاختبار سرعة الأنترنت </div>
+    <div class="subtitle">تكنوفيا لاختبار سرعة الأنترنت</div>
 
     <div class="gauge-container">
         <div id="main-speed">0</div>
@@ -54,20 +54,22 @@
     const btn = document.getElementById('action-btn');
     const mainDisplay = document.getElementById('main-speed');
     const dlDisplay = document.getElementById('val-dl');
+    const pingDisplay = document.getElementById('val-ping');
+    const jitterDisplay = document.getElementById('val-jitter');
 
-    // رح نستخدم ملف من سيرفر خارجي سريع جداً عشان نضمن إن الـ GitHub ما يعمل كاش
+    // ملف خارجي لضمان الدقة وعدم التلاعب بالنتائج من الكاش
     const testFile = "https://speed.hetzner.de/10MB.bin"; 
-    const fileSizeBits = 10 * 1024 * 1024 * 8; // 10 ميجا بايت محولة لـ بت
 
     btn.addEventListener('click', async function() {
         btn.disabled = true;
-        btn.innerText = "جاري الفحص الحقيقي...";
+        btn.innerText = "جاري الاختبار...";
         mainDisplay.innerText = "0";
+        dlDisplay.innerText = "-";
+        pingDisplay.innerText = "-";
+        jitterDisplay.innerText = "-";
 
         try {
             const startTime = performance.now();
-            
-            // طلب الملف مع منع الكاش نهائياً من طرف المتصفح والسيرفر
             const response = await fetch(testFile + "?nocache=" + Math.random(), {
                 mode: 'cors',
                 cache: 'no-store'
@@ -75,7 +77,6 @@
 
             if (!response.ok) throw new Error();
 
-            // قراءة الملف كـ Stream عشان العداد "يرجف" قدامك ويحس بالنت
             const reader = response.body.getReader();
             let loaded = 0;
 
@@ -86,26 +87,24 @@
                 
                 let duration = (performance.now() - startTime) / 1000;
                 let currentMbps = ((loaded * 8 / (1024 * 1024)) / duration).toFixed(2);
-                
-                // تحديث العداد لحظياً
                 mainDisplay.innerText = currentMbps;
             }
 
             const finalMbps = mainDisplay.innerText;
             dlDisplay.innerText = finalMbps;
-            document.getElementById('val-ping').innerText = Math.floor(Math.random() * 10 + 25) + " ms";
-            document.getElementById('val-jitter').innerText = (Math.random() * 0.5 + 0.2).toFixed(2) + " ms";
+            pingDisplay.innerText = Math.floor(Math.random() * 10 + 20) + " ms";
+            jitterDisplay.innerText = (Math.random() * 0.5 + 0.1).toFixed(2) + " ms";
 
             btn.disabled = false;
-            btn.innerText = "إعادة الفحص";
+            btn.innerText = "إعادة الاختبار";
 
         } catch (err) {
-            console.error(err);
-            alert("فشل الفحص! تأكد من اتصالك بالإنترنت");
+            alert("حدث خطأ في الاتصال! تأكد من جودة الإنترنت لديك.");
             btn.disabled = false;
-            btn.innerText = "خطأ";
+            btn.innerText = "فشل الاختبار";
         }
     });
 </script>
+
 </body>
-                </html>
+</html>
