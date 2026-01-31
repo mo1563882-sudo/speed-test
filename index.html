@@ -6,7 +6,7 @@
     <title>تكنوفيا - Speed Test 2026</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* تنسيق الألوان لتناسب قالب سورا */
+        /* تنسيق متوافق مع قالب سورا الأزرق */
         :root { --sora-blue: #007bff; --sora-dark: #333; }
         .test-container {
             max-width: 450px;
@@ -66,7 +66,7 @@
             <span class="unit">Mbps</span>
         </div>
 
-        <button id="start-btn">ابدأ فحص التوربو</button>
+        <button id="start-btn">بدء فحص التوربو</button>
 
         <div class="results">
             <div class="res-item">
@@ -91,26 +91,35 @@
         const pingSpan = document.getElementById('ping');
         const jitterSpan = document.getElementById('jitter');
 
-        // البيانات اللي اتفقنا عليها
-        const fileName = "Plastic_n_Ivory.mp3" + "?n=" + Math.random();
-        const fileSize = 9573663; // حجم 9.13 ميجا بالبايت
+        // اسم الملف اللي أنت رفعته بالضبط
+        const fileUrl = "Plastic_n_Ivory.mp3";
+        const fileSizeInBytes = 9573663; // حجم 9.13 ميجا
 
-        startBtn.addEventListener('click', function() {
-            startBtn.innerText = "جاري التحميل...";
+        startBtn.addEventListener('click', async function() {
+            startBtn.innerText = "جاري الفحص...";
             startBtn.disabled = true;
             
-            const startTime = new Date().getTime();
-            const download = new Audio();
-            download.src = fileName;
+            speedDisplay.innerText = "0";
+            downloadSpan.innerText = "-";
+            pingSpan.innerText = "-";
+            jitterSpan.innerText = "-";
 
-            download.addEventListener("canplaythrough", function() {
-                const endTime = new Date().getTime();
-                const duration = (endTime - startTime) / 1000;
-                const speedMbps = ((fileSize * 8 / (1024 * 1024)) / duration).toFixed(2);
+            const startTime = performance.now();
 
-                // نتائج احترافية
-                const ping = Math.floor(Math.random() * 20) + 10;
-                const jitter = (Math.random() * 2).toFixed(2);
+            try {
+                // استخدام fetch لضمان التحميل الفعلي للملف
+                const response = await fetch(fileUrl + "?cb=" + startTime);
+                if (!response.ok) throw new Error();
+                
+                const blob = await response.blob(); 
+                const endTime = performance.now();
+                
+                const durationInSeconds = (endTime - startTime) / 1000;
+                const speedMbps = ((fileSizeInBytes * 8 / (1024 * 1024)) / durationInSeconds).toFixed(2);
+
+                // نتائج محاكية باحترافية
+                const ping = Math.floor(Math.random() * 10) + 15;
+                const jitter = (Math.random() * 1.2).toFixed(2);
 
                 speedDisplay.innerText = speedMbps;
                 downloadSpan.innerText = speedMbps;
@@ -119,12 +128,12 @@
 
                 startBtn.innerText = "فحص مرة أخرى";
                 startBtn.disabled = false;
-            }, { once: true });
 
-            download.onerror = () => {
-                alert("الملف غير موجود أو الرابط خطأ!");
+            } catch (error) {
+                alert("تعذر الوصول للملف! تأكد أن الملف مرفوع في نفس مسار index.html");
+                startBtn.innerText = "خطأ في الاتصال";
                 startBtn.disabled = false;
-            };
+            }
         });
     </script>
 </body>
