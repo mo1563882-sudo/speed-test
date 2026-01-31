@@ -1,55 +1,126 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #0d1117; /* أسود مائل للأزرق */
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
+<style>
+    :root {
+        --sora-blue: #007bff;
+        --sora-dark: #222;
+        --sora-grey: #555;
+        --white: #ffffff;
+    }
 
-.test-container {
-    background: #161b22;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    text-align: center;
-    width: 320px;
-    border: 1px solid #30363d;
-}
+    body {
+        background-color: #f0f2f5;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        direction: rtl; /* لضمان تناسق اللغة العربية */
+    }
 
-h2 { color: #58a6ff; font-size: 1.2rem; } /* الأزرق تبع تكنوفيا */
+    .speedtest-card {
+        background: var(--white);
+        width: 95%;
+        max-width: 480px;
+        padding: 40px 30px; /* زيادة الحشوة الداخلية */
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        text-align: center;
+        border: 1px solid #e0e0e0;
+    }
 
-.gauge-area {
-    margin: 20px 0;
-    font-size: 3.5rem;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 0 10px #58a6ff;
-}
+    .logo-title {
+        color: var(--sora-blue);
+        font-size: 26px; /* تكبير العنوان */
+        font-weight: 800;
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+    }
 
-.unit { font-size: 1rem; color: #8b949e; }
+    .subtitle {
+        color: var(--sora-grey);
+        font-size: 16px; /* خط مقروء للعنوان الفرعي */
+        margin-bottom: 35px;
+    }
 
-#start-btn {
-    background: #58a6ff; /* أزرق */
-    color: #fff;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
+    /* عداد السرعة الفخم */
+    .gauge-container {
+        width: 200px; /* تكبير الدائرة */
+        height: 200px;
+        margin: 0 auto 30px;
+        border: 12px solid #f8f9fa;
+        border-top: 12px solid var(--sora-blue);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+    }
 
-#start-btn:hover { background: #1f6feb; transform: scale(1.05); }
+    #main-speed {
+        font-size: 52px; /* رقم السرعة كبير وواضح جداً */
+        font-weight: 900;
+        color: var(--sora-dark);
+        line-height: 1;
+    }
 
-.results {
-    margin-top: 20px;
-    text-align: right;
-    border-top: 1px solid #30363d;
-    padding-top: 15px;
-}
+    .mbps-unit {
+        color: var(--sora-blue);
+        font-size: 18px;
+        font-weight: 600;
+        margin-top: 5px;
+    }
 
-.results p { margin: 5px 0; color: #c9d1d9; }
+    /* النتائج السفلية */
+    .results-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 20px;
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 2px solid #f1f1f1;
+    }
+
+    .res-box {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .res-label {
+        font-size: 13px; /* تكبير العناوين الصغيرة */
+        color: var(--sora-grey);
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .res-value {
+        font-size: 18px; /* أرقام النتائج واضحة */
+        font-weight: 700;
+        color: var(--sora-blue);
+    }
+
+    /* زر التشغيل */
+    #action-btn {
+        background-color: var(--sora-blue);
+        color: var(--white);
+        border: none;
+        width: 100%;
+        padding: 18px; /* زر أضخم وأسهل للضغط */
+        border-radius: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        margin-top: 10px;
+    }
+
+    #action-btn:hover {
+        background-color: #0056b3;
+        transform: scale(1.02);
+    }
+
+    #action-btn:active {
+        transform: scale(0.98);
+    }
+</style>
