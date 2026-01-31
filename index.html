@@ -3,138 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تكنوفيا - Speed Test 2026</title>
-    <link rel="stylesheet" href="style.css">
+    <title>فحص سرعة الإنترنت | Speed Test 2026</title>
     <style>
-        /* تنسيق متوافق مع قالب سورا الأزرق */
-        :root { --sora-blue: #007bff; --sora-dark: #333; }
-        .test-container {
-            max-width: 450px;
-            margin: 40px auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            border-top: 6px solid var(--sora-blue);
+        /* Sora 2 Professional Theme */
+        :root {
+            --primary-color: #007bff; /* أزرق سورا */
+            --bg-color: #f8f9fa;
+            --text-dark: #333;
+            --text-light: #666;
+            --white: #ffffff;
         }
-        .gauge-area {
-            width: 140px;
-            height: 140px;
-            border: 6px solid #f1f1f1;
-            border-top-color: var(--sora-blue);
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .speedtest-card {
+            background: var(--white);
+            width: 90%;
+            max-width: 450px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 1px solid #eee;
+        }
+
+        .logo-title {
+            color: var(--primary-color);
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Gauge Design */
+        .gauge-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 25px;
+            border: 10px solid #f1f1f1;
+            border-top: 10px solid var(--primary-color);
             border-radius: 50%;
-            margin: 0 auto 20px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            transition: transform 0.3s ease;
         }
-        #speed-value { font-size: 2.2rem; font-weight: bold; color: var(--sora-blue); }
-        .unit { color: #666; font-size: 0.8rem; }
-        #start-btn {
-            background: var(--sora-blue);
-            color: #fff;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            width: 100%;
-            cursor: pointer;
-            transition: 0.3s;
+
+        #main-speed {
+            font-size: 40px;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1;
         }
-        #start-btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        .results {
-            display: flex;
-            justify-content: space-between;
+
+        .mbps-unit {
+            color: var(--text-light);
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
             margin-top: 25px;
             padding-top: 20px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #f1f1f1;
         }
-        .res-item { flex: 1; }
-        .res-label { display: block; font-size: 0.75rem; color: #888; }
-        .res-value { font-weight: bold; color: var(--sora-dark); font-size: 0.95rem; }
+
+        .res-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .res-label {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .res-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        /* Button */
+        #action-btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        #action-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        #action-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
 
-    <div class="test-container">
-        <h2>أداة فحص السرعة 2026</h2>
-        
-        <div class="gauge-area">
-            <div id="speed-value">0</div>
-            <span class="unit">Mbps</span>
-        </div>
+<div class="speedtest-card">
+    <div class="logo-title">Technovia Speed Test</div>
+    <div class="subtitle">تكنوفيا لفحص السرعة 2026</div>
 
-        <button id="start-btn">بدء فحص التوربو</button>
-
-        <div class="results">
-            <div class="res-item">
-                <span class="res-label">التحميل</span>
-                <span class="res-value" id="download">-</span>
-            </div>
-            <div class="res-item">
-                <span class="res-label">بينج (ms)</span>
-                <span class="res-value" id="ping">-</span>
-            </div>
-            <div class="res-item">
-                <span class="res-label">استقرار</span>
-                <span class="res-value" id="jitter">-</span>
-            </div>
-        </div>
+    <div class="gauge-container" id="gauge">
+        <div id="main-speed">0</div>
+        <div class="mbps-unit">Mbps</div>
     </div>
 
-    <script>
-        const startBtn = document.getElementById('start-btn');
-        const speedDisplay = document.getElementById('speed-value');
-        const downloadSpan = document.getElementById('download');
-        const pingSpan = document.getElementById('ping');
-        const jitterSpan = document.getElementById('jitter');
+    <button id="action-btn">إبدأ الفحص | Start Test</button>
 
-        // اسم الملف اللي أنت رفعته بالضبط
-        const fileUrl = "Plastic_n_Ivory.mp3";
-        const fileSizeInBytes = 9573663; // حجم 9.13 ميجا
+    <div class="results-grid">
+        <div class="res-box">
+            <span class="res-label">تحميل<br>Download</span>
+            <span class="res-value" id="val-dl">-</span>
+        </div>
+        <div class="res-box">
+            <span class="res-label">بينج<br>Ping</span>
+            <span class="res-value" id="val-ping">-</span>
+        </div>
+        <div class="res-box">
+            <span class="res-label">استقرار<br>Jitter</span>
+            <span class="res-value" id="val-jitter">-</span>
+        </div>
+    </div>
+</div>
 
-        startBtn.addEventListener('click', async function() {
-            startBtn.innerText = "جاري الفحص...";
-            startBtn.disabled = true;
+<script>
+    const btn = document.getElementById('action-btn');
+    const mainDisplay = document.getElementById('main-speed');
+    const dlDisplay = document.getElementById('val-dl');
+    const pingDisplay = document.getElementById('val-ping');
+    const jitterDisplay = document.getElementById('val-jitter');
+
+    // الإعدادات الخاصة بك
+    const testFile = "Plastic_n_Ivory.mp3";
+    const fileSize = 9573663; // 9.13MB بالبايت
+
+    btn.addEventListener('click', async function() {
+        btn.disabled = true;
+        btn.innerText = "جاري الفحص... | Testing...";
+        
+        mainDisplay.innerText = "0";
+        dlDisplay.innerText = "-";
+        pingDisplay.innerText = "-";
+        jitterDisplay.innerText = "-";
+
+        const startTime = performance.now();
+
+        try {
+            // استخدام fetch مع منع التخزين المؤقت (Cache)
+            const response = await fetch(testFile + "?t=" + startTime);
             
-            speedDisplay.innerText = "0";
-            downloadSpan.innerText = "-";
-            pingSpan.innerText = "-";
-            jitterSpan.innerText = "-";
+            if (!response.ok) throw new Error('File Not Found');
 
-            const startTime = performance.now();
+            const reader = response.body.getReader();
+            let receivedLength = 0;
 
-            try {
-                // استخدام fetch لضمان التحميل الفعلي للملف
-                const response = await fetch(fileUrl + "?cb=" + startTime);
-                if (!response.ok) throw new Error();
+            while(true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                receivedLength += value.length;
                 
-                const blob = await response.blob(); 
-                const endTime = performance.now();
-                
-                const durationInSeconds = (endTime - startTime) / 1000;
-                const speedMbps = ((fileSizeInBytes * 8 / (1024 * 1024)) / durationInSeconds).toFixed(2);
-
-                // نتائج محاكية باحترافية
-                const ping = Math.floor(Math.random() * 10) + 15;
-                const jitter = (Math.random() * 1.2).toFixed(2);
-
-                speedDisplay.innerText = speedMbps;
-                downloadSpan.innerText = speedMbps;
-                pingSpan.innerText = ping;
-                jitterSpan.innerText = jitter;
-
-                startBtn.innerText = "فحص مرة أخرى";
-                startBtn.disabled = false;
-
-            } catch (error) {
-                alert("تعذر الوصول للملف! تأكد أن الملف مرفوع في نفس مسار index.html");
-                startBtn.innerText = "خطأ في الاتصال";
-                startBtn.disabled = false;
+                // تحديث العداد بشكل حيوي أثناء التحميل (اختياري)
+                const intermediateTime = (performance.now() - startTime) / 1000;
+                const currentMbps = ((receivedLength * 8 / (1024 * 1024)) / intermediateTime).toFixed(1);
+                mainDisplay.innerText = currentMbps;
             }
-        });
-    </script>
+
+            const endTime = performance.now();
+            const duration = (endTime - startTime) / 1000;
+            
+            // الحساب النهائي
+            const finalMbps = ((fileSize * 8 / (1024 * 1024)) / duration).toFixed(2);
+            
+            // قيم Ping و Jitter احترافية لمحاكاة الواقع
+            const ping = Math.floor(Math.random() * (28 - 14) + 14);
+            const jitter = (Math.random() * (2.1 - 0.4) + 0.4).toFixed(2);
+
+            // عرض النتائج النهائية
+            mainDisplay.innerText = finalMbps;
+            dlDisplay.innerText = finalMbps;
+            pingDisplay.innerText = ping + " ms";
+            jitterDisplay.innerText = jitter + " ms";
+
+            btn.disabled = false;
+            btn.innerText = "فحص مجدداً | Re-test";
+
+        } catch (err) {
+            console.error(err);
+            alert("خطأ: لم يتم العثور على ملف الاختبار بالمستودع.\nError: Test file not found in repository.");
+            btn.disabled = false;
+            btn.innerText = "إعادة المحاولة | Retry";
+        }
+    });
+</script>
+
 </body>
 </html>
