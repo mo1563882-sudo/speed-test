@@ -1,1 +1,31 @@
-<h1>اختبار السرعة</h1>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فحص سرعة الإنترنت - تكنوفيا</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="test-container">
+        <h2>أداة تكنوفيا لفحص السرعة 2026</h2>
+        <div class="gauge-area">
+            <div id="speed-value">0</div>
+            <div class="unit">Mbps</div>
+        </div>
+        <button id="start-btn">بدء الفحص الآن</button>
+        <div class="results">
+            <p>التحميل: <span id="download">-</span> Mbps</p>
+            <p>الرفع: <span id="upload">-</span> Mbps</p>
+            <p>زمن الاستجابة (Ping): <span id="ping">-</span> ms</p>
+        </div>
+    </div>
+
+    <script>
+        // هنا سنضع سكربت الفحص لاحقاً أو نربطه بملف خارجي
+        document.getElementById('start-btn').addEventListener('click', function() {
+            alert('سيتم بدء الفحص.. تأكد من رفع ملفات الاختبار أولاً!');
+        });
+    </script>
+</body>
+</html>
