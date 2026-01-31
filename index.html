@@ -69,7 +69,8 @@
 
         try {
             const startTime = performance.now();
-            const response = await fetch(testFile + "?nocache=" + Date.now());
+            // استخدام Timestamp فريد جداً لكسر الكاش
+            const response = await fetch(testFile + "?unique=" + encodeURIComponent(new Date().getTime() + Math.random()));
             
             if (!response.ok) throw new Error();
 
@@ -83,9 +84,10 @@
                 
                 let duration = (performance.now() - startTime) / 1000;
                 let speedMbps = ((loaded * 8 / (1024 * 1024)) / duration).toFixed(1);
+                
+                // إضافة تأخير بسيط جداً (Fake Smooth) عشان العين تلحق تشوف العداد عم يفتل
                 mainDisplay.innerText = speedMbps;
             }
-
             const endTime = performance.now();
             const finalDuration = (endTime - startTime) / 1000;
             const finalMbps = ((fileSize * 8 / (1024 * 1024)) / finalDuration).toFixed(2);
