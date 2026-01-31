@@ -1,6 +1,6 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #121212;
+    background-color: #0d1117; /* أسود مائل للأزرق */
     color: white;
     display: flex;
     justify-content: center;
@@ -10,28 +10,30 @@ body {
 }
 
 .test-container {
-    background: #1e1e1e;
+    background: #161b22;
     padding: 30px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     text-align: center;
     width: 320px;
-    border: 1px solid #333;
+    border: 1px solid #30363d;
 }
 
-h2 { color: #00e676; font-size: 1.2rem; }
+h2 { color: #58a6ff; font-size: 1.2rem; } /* الأزرق تبع تكنوفيا */
 
 .gauge-area {
     margin: 20px 0;
     font-size: 3.5rem;
     font-weight: bold;
     color: #fff;
+    text-shadow: 0 0 10px #58a6ff;
 }
 
-.unit { font-size: 1rem; color: #aaa; }
+.unit { font-size: 1rem; color: #8b949e; }
 
 #start-btn {
-    background: #00e676;
+    background: #58a6ff; /* أزرق */
+    color: #fff;
     border: none;
     padding: 12px 30px;
     border-radius: 50px;
@@ -41,13 +43,13 @@ h2 { color: #00e676; font-size: 1.2rem; }
     transition: 0.3s;
 }
 
-#start-btn:hover { background: #00c853; transform: scale(1.05); }
+#start-btn:hover { background: #1f6feb; transform: scale(1.05); }
 
 .results {
     margin-top: 20px;
     text-align: right;
-    border-top: 1px solid #333;
+    border-top: 1px solid #30363d;
     padding-top: 15px;
 }
 
-.results p { margin: 5px 0; color: #ddd; }
+.results p { margin: 5px 0; color: #c9d1d9; }
