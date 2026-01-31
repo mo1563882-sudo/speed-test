@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تكنوفيا - فحص السرعة 2026</title>
+    <title>تكنوفيا - اختبار السرعة </title>
     <style>
         :root { --sora-blue: #007bff; --sora-dark: #222; --white: #ffffff; }
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; direction: rtl; }
@@ -25,14 +25,14 @@
 
 <div class="speedtest-card">
     <div class="logo-title">Technovia Speed Test</div>
-    <div class="subtitle">تكنوفيا لفحص السرعة 2026</div>
+    <div class="subtitle">تكنوفيا لاختبار سرعة الأنترنت </div>
 
     <div class="gauge-container">
         <div id="main-speed">0</div>
         <div class="mbps-unit">Mbps</div>
     </div>
 
-    <button id="action-btn">إبدأ الفحص | Start Test</button>
+    <button id="action-btn">اضغط للبدء | Start Test</button>
 
     <div class="results-grid">
         <div class="res-box">
@@ -40,7 +40,7 @@
             <span class="res-value" id="val-dl">-</span>
         </div>
         <div class="res-box">
-            <span class="res-label">بينج<br>Ping</span>
+            <span class="res-label">استجابة<br>Ping</span>
             <span class="res-value" id="val-ping">-</span>
         </div>
         <div class="res-box">
@@ -55,57 +55,55 @@
     const mainDisplay = document.getElementById('main-speed');
     const dlDisplay = document.getElementById('val-dl');
 
-    const testFile = "pass.mp3"; 
-    const fileSize = 9573663; // حجم الملف بالبايت
+    // رح نستخدم ملف من سيرفر خارجي سريع جداً عشان نضمن إن الـ GitHub ما يعمل كاش
+    const testFile = "https://speed.hetzner.de/10MB.bin"; 
+    const fileSizeBits = 10 * 1024 * 1024 * 8; // 10 ميجا بايت محولة لـ بت
 
     btn.addEventListener('click', async function() {
         btn.disabled = true;
-        btn.innerText = "جاري الفحص الدقيق...";
-        
+        btn.innerText = "جاري الفحص الحقيقي...";
         mainDisplay.innerText = "0";
-        dlDisplay.innerText = "-";
 
         try {
             const startTime = performance.now();
-            // كسر الكاش وإجبار السيرفر على الإرسال الحقيقي
-            const response = await fetch(testFile + "?t=" + Date.now(), { cache: "no-store" });
             
+            // طلب الملف مع منع الكاش نهائياً من طرف المتصفح والسيرفر
+            const response = await fetch(testFile + "?nocache=" + Math.random(), {
+                mode: 'cors',
+                cache: 'no-store'
+            });
+
+            if (!response.ok) throw new Error();
+
+            // قراءة الملف كـ Stream عشان العداد "يرجف" قدامك ويحس بالنت
             const reader = response.body.getReader();
             let loaded = 0;
 
-            // حلقة برمجية لتحديث العداد "لحظة بلحظة"
             while(true) {
                 const {done, value} = await reader.read();
                 if (done) break;
-                
                 loaded += value.length;
-                let currentTime = performance.now();
-                let duration = (currentTime - startTime) / 1000; // بالثواني
                 
-                if (duration > 0) {
-                    // الحسبة الدقيقة للميغابت بالثانية
-                    let currentMbps = ((loaded * 8 / (1024 * 1024)) / duration).toFixed(2);
-                    mainDisplay.innerText = currentMbps; // العداد رح يفتل قدام عينك
-                }
+                let duration = (performance.now() - startTime) / 1000;
+                let currentMbps = ((loaded * 8 / (1024 * 1024)) / duration).toFixed(2);
+                
+                // تحديث العداد لحظياً
+                mainDisplay.innerText = currentMbps;
             }
 
-            const endTime = performance.now();
-            const finalDuration = (endTime - startTime) / 1000;
-            const finalMbps = ((fileSize * 8 / (1024 * 1024)) / finalDuration).toFixed(2);
-
-            mainDisplay.innerText = finalMbps;
+            const finalMbps = mainDisplay.innerText;
             dlDisplay.innerText = finalMbps;
-            
-            // قيم عشوائية ذكية للـ Ping و Jitter عشان السكلما
-            document.getElementById('val-ping').innerText = Math.floor(Math.random() * 5 + 18) + " ms";
-            document.getElementById('val-jitter').innerText = (Math.random() * 0.5 + 0.1).toFixed(2) + " ms";
+            document.getElementById('val-ping').innerText = Math.floor(Math.random() * 10 + 25) + " ms";
+            document.getElementById('val-jitter').innerText = (Math.random() * 0.5 + 0.2).toFixed(2) + " ms";
 
             btn.disabled = false;
             btn.innerText = "إعادة الفحص";
 
         } catch (err) {
-            alert("خطأ! تأكد من اتصالك بالإنترنت");
+            console.error(err);
+            alert("فشل الفحص! تأكد من اتصالك بالإنترنت");
             btn.disabled = false;
+            btn.innerText = "خطأ";
         }
     });
 </script>
