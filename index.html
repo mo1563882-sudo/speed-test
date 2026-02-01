@@ -13,7 +13,7 @@ body{
     min-height:100vh;margin:0
 }
 .speedtest-card{
-    background:#fff;width:95%;max-width:450px;
+    background:#fff;width:95%;max-width:480px;
     padding:30px;border-radius:22px;
     box-shadow:0 15px 35px rgba(0,0,0,.1);
     text-align:center
@@ -29,11 +29,11 @@ body{
 #main-speed{font-size:48px;font-weight:900;color:var(--dark)}
 .mbps{color:var(--blue);font-weight:700}
 .grid{
-    display:grid;grid-template-columns:1fr 1fr 1fr;
-    gap:15px;margin-top:20px;padding-top:15px;
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:12px;margin-top:20px;padding-top:15px;
     border-top:2px solid #eee
 }
-.lbl{font-size:12px;color:#777}
+.lbl{font-size:12px;color:#777;line-height:1.4}
 .val{font-weight:700;color:var(--blue)}
 button{
     width:100%;padding:15px;margin-top:15px;
@@ -42,49 +42,53 @@ button{
     cursor:pointer
 }
 button:disabled{background:#bbb}
+.stability{
+    margin-top:15px;font-weight:700;color:#444
+}
 </style>
 </head>
 
 <body>
 <div class="speedtest-card">
     <div class="logo-title">Technovia Speed Test</div>
-    <div class="subtitle">اختبار سرعة الإنترنت الذكي</div>
+    <div class="subtitle">اختبار أداء الإنترنت | Network Performance Test</div>
 
     <div class="gauge">
         <div id="main-speed">0</div>
         <div class="mbps">Mbps</div>
     </div>
 
-    <button id="btn">بدء الاختبار</button>
+    <button id="btn">بدء الاختبار | Start Test</button>
 
     <div class="grid">
-        <div><div class="lbl">تحميل</div><div class="val" id="dl">-</div></div>
+        <div><div class="lbl">متوسط السرعة<br>Average Speed</div><div class="val" id="avg">-</div></div>
+        <div><div class="lbl">أعلى سرعة<br>Max Speed</div><div class="val" id="max">-</div></div>
+        <div><div class="lbl">أدنى سرعة<br>Min Speed</div><div class="val" id="min">-</div></div>
+        <div><div class="lbl">التذبذب<br>Fluctuation</div><div class="val" id="fluct">-</div></div>
+        <div><div class="lbl">التشويش<br>Noise</div><div class="val" id="noise">-</div></div>
         <div><div class="lbl">Ping</div><div class="val" id="ping">-</div></div>
-        <div><div class="lbl">Jitter</div><div class="val" id="jitter">-</div></div>
     </div>
+
+    <div class="stability" id="stability">-</div>
 </div>
 
 <script>
 const btn = document.getElementById("btn");
 const main = document.getElementById("main-speed");
-const dlEl = document.getElementById("dl");
-const pingEl = document.getElementById("ping");
-const jitterEl = document.getElementById("jitter");
 
-const MIRRORS = {
-    small: [
-        "https://speed.cloudflare.com/__down?bytes=3000000",
-        "pass.mp3"
-    ],
-    medium: [
-        "https://speed.cloudflare.com/__down?bytes=20000000",
-        "https://proof.ovh.net/files/20Mb.dat"
-    ],
-    large: [
-        "https://speed.cloudflare.com/__down?bytes=50000000",
-        "https://proof.ovh.net/files/50Mb.dat"
-    ]
-};
+const avgEl = document.getElementById("avg");
+const maxEl = document.getElementById("max");
+const minEl = document.getElementById("min");
+const fluctEl = document.getElementById("fluct");
+const noiseEl = document.getElementById("noise");
+const pingEl = document.getElementById("ping");
+const stabilityEl = document.getElementById("stability");
+
+const TEST_FILES = [
+    "https://speed.cloudflare.com/__down?bytes=50000000",
+    "https://proof.ovh.net/files/50Mb.dat",
+    "pass.mp3"
+];
 
 async function getWorking(urls){
     for (let u of urls){
@@ -104,63 +108,81 @@ async function measurePing(){
         t.push(performance.now()-s);
     }
     const avg=t.reduce((a,b)=>a+b)/t.length;
-    const jit=Math.sqrt(t.map(x=>(x-avg)**2).reduce((a,b)=>a+b)/t.length);
-    return {ping:Math.round(avg),jitter:jit.toFixed(2)};
+    return Math.round(avg);
 }
 
-async function downloadTest(url){
-    const res=await fetch(url+"?r="+Math.random(),{cache:"no-store"});
-    const reader=res.body.getReader();
-    const start=performance.now();
-    let validStart=0,bytes=0;
+function calcNoise(samples, avg){
+    const v = samples.reduce((a,b)=>a+(b-avg)**2,0)/samples.length;
+    return Math.sqrt(v);
+}
+
+function stabilityLabel(noise){
+    if(noise < 0.3) return "مستقرة جداً | Very Stable";
+    if(noise < 0.8) return "مستقرة | Stable";
+    if(noise < 1.5) return "متذبذبة | Unstable";
+    return "غير مستقرة | Very Unstable";
+}
+
+async function runTest(url){
+    const res = await fetch(url+"?r="+Math.random(),{cache:"no-store"});
+    const reader = res.body.getReader();
+
+    const start = performance.now();
+    let validStart = 0;
+    let bytes = 0;
+    let samples = [];
 
     while(true){
-        const {done,value}=await reader.read();
+        const {done,value} = await reader.read();
         if(done) break;
 
-        const now=performance.now();
-        if(now-start>2000){
-            if(!validStart) validStart=now;
-            bytes+=value.length;
-            const sec=(now-validStart)/1000;
-            const mbps=((bytes*8)/(1024*1024))/sec;
-            main.innerText=mbps.toFixed(1);
+        const now = performance.now();
+        if(now - start > 2000){
+            if(!validStart) validStart = now;
+            bytes += value.length;
+            const sec = (now - validStart)/1000;
+            const mbps = ((bytes*8)/(1024*1024))/sec;
+            main.innerText = mbps.toFixed(1);
+            samples.push(mbps);
         }
-        if(now-start>12000) break;
+        if(now - start > 15000) break;
     }
-    return main.innerText;
+    return samples;
 }
 
-btn.onclick=async()=>{
-    btn.disabled=true;
-    btn.innerText="جاري القياس...";
-    main.innerText="0"; dlEl.innerText=pingEl.innerText=jitterEl.innerText="-";
+btn.onclick = async ()=>{
+    btn.disabled = true;
+    btn.innerText = "جاري القياس...";
+    main.innerText = "0";
+    avgEl.innerText = maxEl.innerText = minEl.innerText =
+    fluctEl.innerText = noiseEl.innerText = pingEl.innerText = "-";
+    stabilityEl.innerText = "-";
 
     try{
-        // Ping & Jitter
-        const pj=await measurePing();
-        pingEl.innerText=pj.ping+" ms";
-        jitterEl.innerText=pj.jitter+" ms";
+        pingEl.innerText = (await measurePing()) + " ms";
+        const file = await getWorking(TEST_FILES);
+        const samples = await runTest(file);
 
-        // Auto Scale (اختبار تمهيدي)
-        const preUrl=await getWorking(MIRRORS.small);
-        const preSpeed=await downloadTest(preUrl);
+        const avg = samples.reduce((a,b)=>a+b)/samples.length;
+        const max = Math.max(...samples);
+        const min = Math.min(...samples);
+        const fluct = max - min;
+        const noise = calcNoise(samples, avg);
 
-        let finalGroup = preSpeed < 10 ? MIRRORS.small :
-                         preSpeed < 40 ? MIRRORS.medium :
-                         MIRRORS.large;
+        avgEl.innerText = avg.toFixed(2) + " Mbps";
+        maxEl.innerText = max.toFixed(2) + " Mbps";
+        minEl.innerText = min.toFixed(2) + " Mbps";
+        fluctEl.innerText = fluct.toFixed(2) + " Mbps";
+        noiseEl.innerText = noise.toFixed(2);
+        stabilityEl.innerText = "حالة الاستقرار | Stability: " + stabilityLabel(noise);
 
-        const finalUrl=await getWorking(finalGroup);
-        const finalSpeed=await downloadTest(finalUrl);
-
-        dlEl.innerText=finalSpeed+" Mbps";
-        btn.innerText="إعادة الاختبار";
-        btn.disabled=false;
+        btn.innerText = "إعادة الاختبار | Retest";
+        btn.disabled = false;
 
     }catch(e){
         alert("فشل الاختبار – تحقق من الاتصال");
-        btn.disabled=false;
-        btn.innerText="إعادة المحاولة";
+        btn.disabled = false;
+        btn.innerText = "إعادة المحاولة";
     }
 };
 </script>
