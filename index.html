@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technovia Speed Test</title>
+
+<style>
+:root{--blue:#0a7cff;--light:#f4f8ff;--card:#fff;}
+
+body{
+margin:0;background:var(--light);
+font-family:tahoma;
+display:flex;justify-content:center;align-items:center;
+min-height:100vh;
+}
+
+.card{
+width:95%;max-width:560px;
+background:var(--card);
+padding:30px;border-radius:20px;
+box-shadow:0 10px 40px rgba(0,0,0,.08);
+text-align:center;
+}
+
+.title{font-size:26px;font-weight:900;color:var(--blue);}
+.subtitle{color:#666;margin-bottom:25px;}
+
+.gauge{width:220px;height:220px;margin:auto;position:relative;}
+.gauge svg{transform:rotate(-90deg);}
+.bg{stroke:#e6eefc;stroke-width:18;}
+.bar{
+stroke:var(--blue);stroke-width:18;
+stroke-linecap:round;
+stroke-dasharray:565;
+stroke-dashoffset:565;
+transition:.15s;
+}
+
+.speedBox{
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+}
+
+.speed{font-size:46px;font-weight:900;color:#111;}
+.unit{color:var(--blue);font-weight:700;}
+
+.stats{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+margin-top:25px;
+gap:10px;
+}
+
+.stat{
+background:#f6f9ff;
+padding:10px;
+border-radius:10px;
+}
+
+.stat span{font-size:11px;color:#777;display:block;}
+.stat b{color:var(--blue);font-size:16px;}
+
+button{
+width:100%;
+padding:15px;
+margin-top:25px;
+border:0;border-radius:12px;
+background:var(--blue);
+color:#fff;font-size:18px;font-weight:800;
+cursor:pointer;
+}
+
+button:disabled{background:#9dbcf9;}
+
+.details{margin-top:15px;font-size:13px;color:#444;}
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="title">Technovia Speed Test</div>
+<div class="subtitle">اختبار سرعة الإنترنت</div>
+
+<div class="gauge">
+
+<svg width="220" height="220">
+<circle cx="110" cy="110" r="90" fill="none" class="bg"></circle>
+<circle id="bar" cx="110" cy="110" r="90" fill="none" class="bar"></circle>
+</svg>
+
+<div class="speedBox">
+<div class="speed" id="speed">0</div>
+<div class="unit">Mbps</div>
+</div>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+<span>Ping</span>
+<b id="ping">-</b>
+</div>
+
+<div class="stat">
+<span>Jitter</span>
+<b id="jitter">-</b>
+</div>
+
+<div class="stat">
+<span>Download</span>
+<b id="down">-</b>
+</div>
+
+<div class="stat">
+<span>Upload</span>
+<b id="up">-</b>
+</div>
+
+</div>
+
+<button id="btn">بدء الاختبار</button>
+
+<div class="details" id="details"></div>
+
+</div>
+
+<script>
+
+const btn=document.getElementById("btn")
+const speedEl=document.getElementById("speed")
+const pingEl=document.getElementById("ping")
+const jitterEl=document.getElementById("jitter")
+const downEl=document.getElementById("down")
+const upEl=document.getElementById("up")
+const bar=document.getElementById("bar")
+const details=document.getElementById("details")
+
+function gauge(speed){
+
+const max=300
+const p=Math.min(speed/max,1)
+const offset=565-(565*p)
+
+bar.style.strokeDashoffset=offset
+speedEl.innerText=speed.toFixed(1)
+
+}
+
+async function pingTest(){
+
+let times=[]
+
+for(let i=0;i<4;i++){
+
+let s=performance.now()
+
+await fetch("https://speed.cloudflare.com/__down?bytes=1",{cache:"no-store"})
+
+times.push(performance.now()-s)
+
+}
+
+let avg=times.reduce((a,b)=>a+b)/times.length
+
+let jitter=Math.sqrt(times.map(x=>(x-avg)**2).reduce((a,b)=>a+b)/times.length)
+
+return{
+ping:Math.round(avg),
+jitter:Math.round(jitter)
+}
+
+}
+
+async function downloadTest(){
+
+const start=performance.now()
+
+const r=await fetch("https://speed.cloudflare.com/__down?bytes=25000000&t="+Math.random())
+
+const reader=r.body.getReader()
+
+let bytes=0
+
+while(true){
+
+const {done,value}=await reader.read()
+
+if(done)break
+
+bytes+=value.length
+
+let time=(performance.now()-start)/1000
+
+let speed=(bytes*8)/(1024*1024*time)
+
+gauge(speed)
+
+}
+
+let time=(performance.now()-start)/1000
+
+return(bytes*8)/(1024*1024*time)
+
+}
+
+async function uploadTest(){
+
+let size=3*1024*1024
+
+let data=new Uint8Array(size)
+
+let start=performance.now()
+
+await fetch("https://speed.cloudflare.com/__up",{
+method:"POST",
+body:data
+})
+
+let time=(performance.now()-start)/1000
+
+return(size*8)/(1024*1024*time)
+
+}
+
+function diagnose(speed,ping,jitter){
+
+if(ping>150)return"الخادم بعيد"
+if(jitter>30)return"تذبذب بالشبكة"
+if(speed<5)return"السرعة منخفضة"
+
+return"الاتصال جيد"
+
+}
+
+btn.onclick=async()=>{
+
+btn.disabled=true
+btn.innerText="جاري الاختبار..."
+
+try{
+
+let pj=await pingTest()
+
+pingEl.innerText=pj.ping+" ms"
+jitterEl.innerText=pj.jitter+" ms"
+
+let down=await downloadTest()
+
+downEl.innerText=down.toFixed(1)
+
+let up=await uploadTest()
+
+upEl.innerText=up.toFixed(1)
+
+details.innerHTML="التشخيص: <b>"+diagnose(down,pj.ping,pj.jitter)+"</b>"
+
+btn.innerText="إعادة الاختبار"
+btn.disabled=false
+
+}
+
+catch(e){
+
+details.innerText="فشل الاختبار بسبب الشبكة أو المتصفح"
+
+btn.innerText="إعادة المحاولة"
+btn.disabled=false
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
