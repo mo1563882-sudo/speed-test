@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Techovia Speed Test</title>
+
+<style>
+
+:root{
+--blue:#0a7cff;
+--bg:#f4f8ff;
+}
+
+body{
+margin:0;
+font-family:tahoma;
+background:var(--bg);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+}
+
+.card{
+background:#fff;
+width:95%;
+max-width:600px;
+padding:25px;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+text-align:center;
+}
+
+.title{
+font-size:26px;
+font-weight:900;
+color:var(--blue);
+}
+
+.speed{
+font-size:46px;
+font-weight:900;
+margin-top:10px;
+}
+
+.timer{
+font-size:14px;
+color:#777;
+}
+
+canvas{
+margin-top:10px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:8px;
+margin-top:15px;
+}
+
+.stat{
+background:#f6f9ff;
+padding:10px;
+border-radius:8px;
+}
+
+.stat span{
+font-size:11px;
+display:block;
+color:#777;
+}
+
+.stat b{
+color:var(--blue);
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:10px;
+border:0;
+border-radius:10px;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+background:var(--blue);
+color:#fff;
+}
+
+.secondary{
+background:#444;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="title">Techovia Speed Test</div>
+
+<canvas id="gauge" width="200" height="200"></canvas>
+
+<div class="speed" id="speed">0 Mbps</div>
+<div class="timer" id="timer">جاهز للاختبار</div>
+
+<canvas id="graph" width="500" height="120"></canvas>
+
+<div class="grid">
+
+<div class="stat">
+<span>Ping</span>
+<b id="ping">-</b>
+</div>
+
+<div class="stat">
+<span>Jitter</span>
+<b id="jitter">-</b>
+</div>
+
+<div class="stat">
+<span>Download</span>
+<b id="down">-</b>
+</div>
+
+<div class="stat">
+<span>Upload</span>
+<b id="up">-</b>
+</div>
+
+</div>
+
+<button id="btn">فحص سريع 15 ثانية</button>
+<button id="btnPro" class="secondary">فحص متقدم 30 ثانية</button>
+
+</div>
+
+<script>
+
+const speedEl=document.getElementById("speed")
+const timerEl=document.getElementById("timer")
+
+const pingEl=document.getElementById("ping")
+const jitterEl=document.getElementById("jitter")
+const downEl=document.getElementById("down")
+const upEl=document.getElementById("up")
+
+const btn=document.getElementById("btn")
+const btnPro=document.getElementById("btnPro")
+
+const gauge=document.getElementById("gauge").getContext("2d")
+const graph=document.getElementById("graph").getContext("2d")
+
+let speeds=[]
+let testing=false
+
+function formatSpeed(mbps){
+
+if(mbps>=1) return mbps.toFixed(2)+" Mbps"
+
+let mb=mbps/8
+
+if(mb>=1) return mb.toFixed(2)+" MB/s"
+
+return (mb*1024).toFixed(0)+" KB/s"
+
+}
+
+function drawGauge(speed){
+
+let max=200
+let angle=(speed/max)*Math.PI
+
+gauge.clearRect(0,0,200,200)
+
+gauge.beginPath()
+gauge.arc(100,100,80,Math.PI,2*Math.PI)
+gauge.strokeStyle="#eee"
+gauge.lineWidth=12
+gauge.stroke()
+
+gauge.beginPath()
+gauge.arc(100,100,80,Math.PI,Math.PI+angle)
+gauge.strokeStyle="#0a7cff"
+gauge.lineWidth=12
+gauge.stroke()
+
+}
+
+function drawGraph(){
+
+graph.clearRect(0,0,500,120)
+
+graph.beginPath()
+
+speeds.forEach((s,i)=>{
+
+let x=i*(500/60)
+let y=120-(s*1.5)
+
+if(i==0)graph.moveTo(x,y)
+else graph.lineTo(x,y)
+
+})
+
+graph.strokeStyle="#0a7cff"
+graph.stroke()
+
+}
+
+async function pingTest(){
+
+let arr=[]
+
+for(let i=0;i<4;i++){
+
+let start=performance.now()
+
+await fetch("https://speed.cloudflare.com/__down?bytes=1")
+
+arr.push(performance.now()-start)
+
+}
+
+let avg=arr.reduce((a,b)=>a+b)/arr.length
+let jitter=Math.sqrt(arr.map(x=>(x-avg)**2).reduce((a,b)=>a+b)/arr.length)
+
+return{
+ping:Math.round(avg),
+jitter:Math.round(jitter)
+}
+
+}
+
+async function downloadTest(duration){
+
+let start=performance.now()
+let bytes=0
+
+while(testing){
+
+let r=await fetch("https://speed.cloudflare.com/__down?bytes=2000000")
+
+let b=await r.arrayBuffer()
+
+bytes+=b.byteLength
+
+let t=(performance.now()-start)/1000
+
+let speed=(bytes*8)/(1024*1024*t)
+
+speedEl.innerText=formatSpeed(speed)
+
+drawGauge(speed)
+
+speeds.push(speed)
+if(speeds.length>60)speeds.shift()
+
+drawGraph()
+
+if(t>=duration) break
+
+}
+
+let total=(performance.now()-start)/1000
+
+return(bytes*8)/(1024*1024*total)
+
+}
+
+async function uploadTest(){
+
+let size=4*1024*1024
+let data=new Uint8Array(size)
+
+let start=performance.now()
+
+await fetch("https://speed.cloudflare.com/__up",{
+method:"POST",
+body:data
+})
+
+let t=(performance.now()-start)/1000
+
+return(size*8)/(1024*1024*t)
+
+}
+
+async function startTest(duration){
+
+btn.disabled=true
+btnPro.disabled=true
+
+testing=true
+speeds=[]
+
+let startTime=Date.now()
+
+let timer=setInterval(()=>{
+
+let passed=(Date.now()-startTime)/1000
+let left=Math.max(0,Math.ceil(duration-passed))
+
+timerEl.innerText="الوقت المتبقي "+left+" ثانية"
+
+if(left<=0){
+
+clearInterval(timer)
+testing=false
+
+}
+
+},200)
+
+let pj=await pingTest()
+
+pingEl.innerText=pj.ping+" ms"
+jitterEl.innerText=pj.jitter+" ms"
+
+let down=await downloadTest(duration)
+
+downEl.innerText=formatSpeed(down)
+
+let up=await uploadTest()
+
+upEl.innerText=formatSpeed(up)
+
+timerEl.innerText="انتهى الاختبار"
+
+btn.disabled=false
+btnPro.disabled=false
+
+}
+
+btn.onclick=()=>startTest(15)
+btnPro.onclick=()=>startTest(30)
+
+</script>
+
+</body>
+</html>
