@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technovia Speed Test</title>
+
+<style>
+/* نفس الستايل السابق بدون أي تغيير */
+:root { --blue:#007bff; --dark:#222; }
+body{
+    background:#f0f2f5;font-family:tahoma;
+    display:flex;justify-content:center;align-items:center;
+    min-height:100vh;margin:0
+}
+.speedtest-card{
+    background:#fff;width:95%;max-width:460px;
+    padding:30px;border-radius:22px;
+    box-shadow:0 15px 35px rgba(0,0,0,.1);
+    text-align:center
+}
+.logo-title{color:var(--blue);font-size:24px;font-weight:800}
+.subtitle{color:#666;margin-bottom:25px}
+.gauge{
+    width:180px;height:180px;margin:0 auto 20px;
+    border:10px solid #f1f1f1;border-top:10px solid var(--blue);
+    border-radius:50%;display:flex;flex-direction:column;
+    justify-content:center;align-items:center
+}
+#main-speed{font-size:48px;font-weight:900;color:var(--dark)}
+.mbps{color:var(--blue);font-weight:700}
+.grid{
+    display:grid;grid-template-columns:1fr 1fr 1fr;
+    gap:15px;margin-top:20px;padding-top:15px;
+    border-top:2px solid #eee
+}
+.lbl{font-size:12px;color:#777}
+.val{font-weight:700;color:var(--blue)}
+.extra{
+    margin-top:15px;font-size:13px;color:#444;line-height:1.7
+}
+button{
+    width:100%;padding:15px;margin-top:18px;
+    background:var(--blue);color:#fff;border:0;
+    border-radius:12px;font-size:18px;font-weight:700;
+    cursor:pointer
+}
+button:disabled{background:#bbb}
+</style>
+</head>
+
+<body>
+<div class="speedtest-card">
+    <div class="logo-title">Technovia Speed Test</div>
+    <div class="subtitle">اختبار سرعة الإنترنت الذكي</div>
+
+    <div class="gauge">
+        <div id="main-speed">0</div>
+        <div class="mbps">Mbps</div>
+    </div>
+
+    <button id="btn">بدء الاختبار | Start Test</button>
+
+    <div class="grid">
+        <div>
+            <div class="lbl">متوسط التحميل<br>Average</div>
+            <div class="val" id="avg">-</div>
+        </div>
+        <div>
+            <div class="lbl">Ping</div>
+            <div class="val" id="ping">-</div>
+        </div>
+        <div>
+            <div class="lbl">Jitter</div>
+            <div class="val" id="jitter">-</div>
+        </div>
+    </div>
+
+    <div class="extra" id="details"></div>
+</div>
+
+<script>
+const btn = document.getElementById("btn");
+const main = document.getElementById("main-speed");
+const avgEl = document.getElementById("avg");
+const pingEl = document.getElementById("ping");
+const jitterEl = document.getElementById("jitter");
+const details = document.getElementById("details");
+
+// ======== التعديل 1: إضافة خوادم محلية (مصر) ودولية ======== 
+const MIRRORS = {
+    // خوادم مصرية (أمثلة)
+    egypt_small: [
+        "https://speedtest.eg.syringanetworks.net/small.file",
+        "https://speedtest.egypt.airtel.com/1MB.test"
+    ],
+    egypt_medium: [
+        "https://speedtest.eg.syringanetworks.net/medium.file",
+        "https://speedtest.egypt.airtel.com/10MB.test"
+    ],
+    egypt_large: [
+        "https://speedtest.eg.syringanetworks.net/large.file",
+        "https://speedtest.egypt.airtel.com/100MB.test"
+    ],
+    // خوادم عالمية
+    global_small: [
+        "https://speed.cloudflare.com/__down?bytes=3000000",
+        "https://proof.ovh.net/files/1Mb.dat"
+    ],
+    global_medium: [
+        "https://speed.cloudflare.com/__down?bytes=20000000",
+        "https://proof.ovh.net/files/10Mb.dat"
+    ],
+    global_large: [
+        "https://speed.cloudflare.com/__down?bytes=50000000",
+        "https://proof.ovh.net/files/50Mb.dat"
+    ],
+    // خوادم إقليمية (دبي)
+    uae: [
+        "https://dxb.speedtest.etisalat.ae/small.file",
+        "https://dxb.speedtest.etisalat.ae/medium.file"
+    ]
+};
+
+// ======== التعديل 2: اختيار الخادم الأسرع عبر الـ Ping ========
+async function findFastestServer() {
+    const servers = [];
+    // جمع جميع الخوادم المرشحة
+    for(const size in MIRRORS) {
+        for(const url of MIRRORS[size]) {
+            if(!servers.includes(url)) servers.push(url);
+        }
+    }
+    
+    let fastest = null;
+    let minPing = Infinity;
+
+    for(const server of servers) {
+        try {
+            const start = performance.now();
+            await fetch(server, { method: 'HEAD', cache: 'no-store' });
+            const ping = performance.now() - start;
+            
+            if(ping < minPing) {
+                minPing = ping;
+                fastest = server;
+            }
+        } catch(e) { /* تجاهل الخوادم الفاشلة */ }
+    }
+    
+    return fastest || MIRRORS.global_small[0]; // افتراضي إذا لم يوجد
+}
+
+// ======== التعديل 3: دعم اتصالات متوازية (Web Workers) ========
+function createWorker() {
+    const workerCode = `
+    self.onmessage = async (e) => {
+        const { url } = e.data;
+        const res = await fetch(url);
+        const reader = res.body.getReader();
+        let bytes = 0;
+        
+        while(true) {
+            const { done, value } = await reader.read();
+            if(done) break;
+            bytes += value.length;
+        }
+        
+        self.postMessage({ bytes });
+    };
+    `;
+    
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    return new Worker(URL.createObjectURL(blob));
+}
+
+async function multiThreadTest(url, threads = 4) {
+    const workers = [];
+    const start = performance.now();
+    
+    // بدء جميع العمال
+    for(let i = 0; i < threads; i++) {
+        const worker = createWorker();
+        worker.postMessage({ url: url + '?thread=' + i });
+        workers.push(new Promise(resolve => {
+            worker.onmessage = (e) => resolve(e.data.bytes);
+        }));
+    }
+    
+    const results = await Promise.all(workers);
+    const totalBytes = results.reduce((sum, bytes) => sum + bytes, 0);
+    const elapsed = (performance.now() - start) / 1000; // ثانية
+    
+    return (totalBytes * 8) / (1024 * 1024 * elapsed); // Mbps
+}
+
+// ======== التعديل 4: تشخيص مشاكل الشبكة ========
+function diagnoseNetwork(avg, ping, jitter) {
+    let issues = [];
+    
+    if(ping > 150) issues.push("مشكلة في الخادم البعيد");
+    if(jitter > 30) issues.push("تذبذب في الإشارة");
+    if(avg < 5 && ping < 50) issues.push("محدودية من مزود الخدمة");
+    if(issues.length === 0) issues.push("لا توجد مشاكل واضحة");
+    
+    return issues.join(" | ");
+}
+
+// ======== التعديل 5: تحسين خوارزمية القياس ========
+async function enhancedRunTest() {
+    // 1. اختيار الخادم الأسرع
+    const fastestServer = await findFastestServer();
+    
+    // 2. قياس Ping & Jitter
+    const pj = await measurePing();
+    
+    // 3. اختبار أولي لتحديد حجم الملف
+    const preTest = await runTest(fastestServer);
+    const preAvg = preTest.reduce((a, b) => a + b) / preTest.length;
+    
+    // 4. اختيار حجم الملف الأمثل
+    let fileSize;
+    if(preAvg < 10) fileSize = 'small';
+    else if(preAvg < 40) fileSize = 'medium';
+    else fileSize = 'large';
+    
+    // 5. تحديد نوع الخادم (محلي/عالمي) حسب الـ Ping
+    const serverType = fastestServer.includes('.eg.') ? 'egypt' : 
+                      fastestServer.includes('.ae') ? 'uae' : 'global';
+    
+    // 6. الاختبار متعدد المسارات (4 اتصالات)
+    const finalSpeed = await multiThreadTest(
+        MIRRORS[`${serverType}_${fileSize}`][0]
+    );
+    
+    return { 
+        speed: finalSpeed,
+        ping: pj.ping,
+        jitter: pj.jitter,
+        issues: diagnoseNetwork(finalSpeed, pj.ping, pj.jitter)
+    };
+}
+
+// ======== الدوال المساعدة (بقيت كما هي مع تحسينات طفيفة) ========
+async function getWorking(urls){
+    for(const u of urls){
+        try{
+            const r=await fetch(u,{method:"HEAD",cache:"no-store"});
+            if(r.ok) return u;
+        }catch(e){}
+    }
+    throw "NO_SOURCE";
+}
+
+async function measurePing(){
+    let t=[];
+    for(let i=0;i<5;i++){
+        const s=performance.now();
+        await fetch("https://speed.cloudflare.com/__down?bytes=1",{cache:"no-store"});
+        t.push(performance.now()-s);
+    }
+    const avg=t.reduce((a,b)=>a+b)/t.length;
+    const jit=Math.sqrt(t.map(x=>(x-avg)**2).reduce((a,b)=>a+b)/t.length);
+    return {ping:Math.round(avg),jitter:jit.toFixed(2)};
+}
+
+function stabilityLabel(noise,avg){
+    const r=noise/avg;
+    if(r<0.05) return "مستقرة جداً | Very Stable";
+    if(r<0.10) return "مستقرة | Stable";
+    if(r<0.20) return "متذبذبة | Unstable";
+    return "غير مستقرة | Very Unstable";
+}
+
+// ======== الوظيفة الرئيسية (محدثة) ========
+btn.onclick=async()=>{
+    btn.disabled=true;
+    btn.innerText="جاري القياس...";
+    main.innerText="0";
+    avgEl.innerText=pingEl.innerText=jitterEl.innerText="-";
+    details.innerText="";
+
+    try{
+        // التشغيل الجديد مع كل التحسينات
+        const result = await enhancedRunTest();
+        
+        main.innerText = result.speed.toFixed(1);
+        pingEl.innerText = result.ping + " ms";
+        jitterEl.innerText = result.jitter + " ms";
+        avgEl.innerText = result.speed.toFixed(1) + " Mbps";
+        
+        details.innerHTML = `
+        التشخيص | Diagnosis: <b>${result.issues}</b><br>
+        الخادم المستخدم | Server: <b>${result.serverType || 'عالمي'}</b>
+        `;
+
+        btn.innerText="إعادة الاختبار";
+        btn.disabled=false;
+
+    }catch(e){
+        alert("فشل الاختبار – " + e);
+        btn.disabled=false;
+        btn.innerText="إعادة المحاولة";
+    }
+};
+</script>
+</body>
+</html>
