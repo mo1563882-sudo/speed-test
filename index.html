@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="html-root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Techovia Speed Test Pro</title>
+<style>
+/* إعداد متغيرات الألوان لضمان التباين العالي والنظيف */
+:root {
+  --blue: #0a7cff;
+  --bg: #f4f8ff;
+  --card-bg: #ffffff;
+  --text: #222222;
+  --text-muted: #444444;
+  --calc-bg: #fff9e6;
+  --calc-border: #ffd966;
+  --calc-text: #7f6000;
+  --calc-b: #d4a017;
+  --slider-bg: #f0f4f8;
+  --stat-bg: #f6f9ff;
+  --stat-border: #edf2f9;
+}
+
+/* التباين الصارم والمريح للوضع المظلم */
+[data-theme="dark"] {
+  --blue: #3b9eff;
+  --bg: #121214;
+  --card-bg: #1a1a1e;
+  --text: #f5f5f7;
+  --text-muted: #b0b0b8;
+  --calc-bg: #2a2415;
+  --calc-border: #4a3b10;
+  --calc-text: #ffd966;
+  --calc-b: #f1c40f;
+  --slider-bg: #25262b;
+  --stat-bg: #202124;
+  --stat-border: #2d2e33;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: tahoma, Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+  padding: 10px;
+  box-sizing: border-box;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.card {
+  background: var(--card-bg);
+  width: 100%;
+  max-width: 480px;
+  padding: clamp(10px, 3vw, 20px);
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  text-align: center;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: background 0.3s ease;
+}
+
+.header-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.title {
+  font-size: clamp(18px, 5vw, 22px);
+  font-weight: 800;
+  color: var(--blue);
+}
+
+.ctrl-btns {
+  display: flex;
+  gap: 5px;
+}
+
+.ctrl-sub-btn {
+  background: var(--slider-bg);
+  border: none;
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.speed {
+  font-size: clamp(30px, 8vw, 40px);
+  font-weight: 900;
+  margin: 2px 0;
+  color: var(--text);
+}
+
+.quality {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+canvas#graph {
+  width: 100%;
+  height: 80px;
+  margin-top: 5px;
+  background: var(--stat-bg);
+  border-radius: 8px;
+}
+
+.calc-box {
+  background: var(--calc-bg);
+  border: 1px dashed var(--calc-border);
+  padding: 8px;
+  border-radius: 10px;
+  margin-top: 5px;
+}
+
+.calc-box span { font-size: 11px; color: var(--calc-text); display: block;}
+.calc-box b { font-size: 14px; color: var(--calc-b); }
+
+.slider-container {
+  margin-top: 5px;
+  padding: 5px;
+  background: var(--slider-bg);
+  border-radius: 8px;
+}
+
+.slider-container label { font-size: 11px; display: block; color: var(--text-muted); }
+input[type=range] { width: 100%; cursor: pointer; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.stat {
+  background: var(--stat-bg);
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid var(--stat-border);
+}
+
+.stat span {
+  font-size: 9px;
+  color: var(--text-muted);
+  display: block;
+}
+
+.stat b {
+  color: var(--blue);
+  font-size: 11px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+  background: var(--blue);
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.secondary { background: #444 }
+button:disabled { background: #9bbef7; opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header-controls">
+    <div class="title">Techovia Speed Test</div>
+    <div class="ctrl-btns">
+      <button class="ctrl-sub-btn" id="langBtn">🌐 EN</button>
+      <button class="ctrl-sub-btn" id="themeBtn">🌙</button>
+    </div>
+  </div>
+
+  <div class="speed" id="speed">0 MB/s</div>
+  <div id="timer" style="font-size: 11px; color: var(--text-muted);">جاهز للفحص</div>
+  <div class="quality" id="quality">---</div>
+  <canvas id="graph" width="400" height="100"></canvas>
+
+  <div class="calc-box">
+    <span id="lbl-calc1gb">زمن التحميل المتوقع (1 GB)</span>
+    <b id="time1gb">--:--</b>
+  </div>
+
+  <div class="slider-container">
+    <label id="sliderLabel">حجم ملف مخصص: 1000 ميجا</label>
+    <input type="range" id="sizeSlider" min="1" max="4000" value="1000">
+    <div style="font-size: 11px; color: var(--text);" id="lbl-takes">يستغرق: <b id="customTime">--:--</b></div>
+  </div>
+
+  <div class="grid">
+    <div class="stat"><span id="lbl-ping">الاستجابة</span><b id="ping">-</b></div>
+    <div class="stat"><span id="lbl-jitter">الالتقلب</span><b id="jitter">-</b></div>
+    <div class="stat"><span id="lbl-bufferbloat">ضغط QoS</span><b id="bufferbloat">-</b></div>
+    <div class="stat"><span id="lbl-stability">الاستقرار</span><b id="stability">-</b></div>
+    <div class="stat"><span id="lbl-noise">التشويش</span><b id="noise">-</b></div>
+    <div class="stat"><span id="lbl-video">بث الفيديو</span><b id="video">-</b></div>
+    <div class="stat" style="grid-column: span 1"><span id="lbl-down">التحميل الصافي</span><b id="down">-</b></div>
+    <div class="stat" style="grid-column: span 2"><span id="lbl-up">الرفع الصافي</span><b id="up">-</b></div>
+  </div>
+
+  <button id="btn">فحص سريع (15ث)</button>
+  <button id="btnPro" class="secondary">فحص متقدم (30ث)</button>
+</div>
+
+<script>
+const speedEl = document.getElementById("speed");
+const timerEl = document.getElementById("timer");
+const qualityEl = document.getElementById("quality");
+const pingEl = document.getElementById("ping");
+const jitterEl = document.getElementById("jitter");
+const downEl = document.getElementById("down");
+const stabilityEl = document.getElementById("stability");
+const noiseEl = document.getElementById("noise");
+const time1gbEl = document.getElementById("time1gb");
+const sliderLabel = document.getElementById("sliderLabel");
+const sizeSlider = document.getElementById("sizeSlider");
+const customTimeEl = document.getElementById("customTime");
+const btn = document.getElementById("btn");
+const btnPro = document.getElementById("btnPro");
+const graph = document.getElementById("graph").getContext("2d");
+
+// العناصر البرمجية الجديدة المضافة بحذر
+const langBtn = document.getElementById("langBtn");
+const themeBtn = document.getElementById("themeBtn");
+const htmlRoot = document.getElementById("html-root");
+
+let speeds = [];
+let currentMax = 5;
+let lastFinalSpeed = 0;
+
+// إدارة الحالة واللغات
+const state = { lang: 'ar', theme: 'light' };
+
+const dict = {
+  ar: {
+    ready: "جاهز للفحص", connecting: "جاري الاتصال...", testingUp: "جاري فحص الرفع...",
+    ended: "انتهى الفحص", error: "حدث خطأ", calc1gb: "زمن التحميل المتوقع (1 GB)",
+    customSize: "حجم ملف مخصص: ", mega: " ميجا", takes: "يستغرق: ",
+    ping: "الاستجابة", jitter: "التقلب", stability: "الاستقرار", noise: "التشويش",
+    down: "التحميل الصافي", up: "الرفع الصافي", bufferbloat: "ضغط QoS", video: "بث الفيديو",
+    btnQuick: "فحص سريع (15ث)", btnPro: "فحص متقدم (30ث)", testingTime: "الوقت المتبقي "
+  },
+  en: {
+    ready: "Ready to Test", connecting: "Connecting...", testingUp: "Testing Upload...",
+    ended: "Test Finished", error: "Error occurred", calc1gb: "Expected download time (1 GB)",
+    customSize: "Custom file size: ", mega: " MB", takes: "Takes: ",
+    ping: "Ping", jitter: "Jitter", stability: "Stability", noise: "Noise",
+    down: "Net Download", up: "Net Upload", bufferbloat: "QoS Bloat", video: "Video Stream",
+    btnQuick: "Quick Test (15s)", btnPro: "Pro Test (30s)", testingTime: "Time remaining "
+  }
+};
+
+function setLanguage(lang) {
+  state.lang = lang;
+  htmlRoot.setAttribute('lang', lang);
+  htmlRoot.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  langBtn.innerText = lang === 'ar' ? "🌐 EN" : "🌐 AR";
+  
+  document.getElementById("lbl-calc1gb").innerText = dict[lang].calc1gb;
+  document.getElementById("lbl-ping").innerText = dict[lang].ping;
+  document.getElementById("lbl-jitter").innerText = dict[lang].jitter;
+  document.getElementById("lbl-stability").innerText = dict[lang].stability;
+  document.getElementById("lbl-noise").innerText = dict[lang].noise;
+  document.getElementById("lbl-bufferbloat").innerText = dict[lang].bufferbloat;
+  document.getElementById("lbl-video").innerText = dict[lang].video;
+  document.getElementById("lbl-down").innerText = dict[lang].down;
+  document.getElementById("lbl-up").innerText = dict[lang].up;
+  btn.innerText = dict[lang].btnQuick;
+  btnPro.innerText = dict[lang].btnPro;
+  
+  sliderLabel.innerText = dict[lang].customSize + sizeSlider.value + dict[lang].mega;
+  document.getElementById("lbl-takes").childNodes[0].nodeValue = dict[lang].takes;
+  if (!speeds.length) timerEl.innerText = dict[lang].ready;
+}
+
+// الكشف التلقائي عن اللغة
+const initialLang = navigator.language.startsWith('ar') ? 'ar' : 'en';
+setLanguage(initialLang);
+
+langBtn.onclick = () => setLanguage(state.lang === 'ar' ? 'en' : 'ar');
+
+themeBtn.onclick = () => {
+  state.theme = state.theme === 'light' ? 'dark' : 'light';
+  htmlRoot.setAttribute('data-theme', state.theme);
+  themeBtn.innerText = state.theme === 'light' ? '🌙' : '☀️';
+};
+
+function formatTime(seconds) {
+    if (isNaN(seconds) || seconds === Infinity) return "--:--";
+    let h = Math.floor(seconds / 3600);
+    let m = Math.floor((seconds % 3600) / 60);
+    let s = Math.floor(seconds % 60);
+    if (h > 0) return state.lang === 'ar' ? `${h}س ${m}د ${s}ث` : `${h}h ${m}m ${s}s`;
+    return state.lang === 'ar' ? `${m}د ${s}ث` : `${m}m ${s}s`;
+}
+
+function updateCalculators(speedMB) {
+    if (speedMB <= 0) return;
+    time1gbEl.innerText = formatTime(1024 / speedMB);
+    let customSize = sizeSlider.value;
+    customTimeEl.innerText = formatTime(customSize / speedMB);
+}
+
+sizeSlider.oninput = () => {
+    sliderLabel.innerText = dict[state.lang].customSize + sizeSlider.value + dict[state.lang].mega;
+    if (lastFinalSpeed > 0) updateCalculators(lastFinalSpeed);
+};
+
+function formatSpeed(mbs) {
+    if (mbs >= 1) return mbs.toFixed(2) + " MB/s";
+    return (mbs * 1024).toFixed(0) + " KB/s";
+}
+
+function quality(speedMB) {
+    if (state.lang === 'en') {
+      if (speedMB > 12.5) return "Excellent 🚀";
+      if (speedMB > 4) return "Very Good";
+      if (speedMB > 1.25) return "Good";
+      if (speedMB > 0.5) return "Average";
+      return "Weak";
+    }
+    if (speedMB > 12.5) return "ممتاز 🚀";
+    if (speedMB > 4) return "جيد جداً";
+    if (speedMB > 1.25) return "جيد";
+    if (speedMB > 0.5) return "متوسط";
+    return "ضعيف";
+}
+
+function estimateVideo(speedMB) {
+  let mbps = speedMB * 8;
+  if (mbps >= 25) return "4K UHD 🎬";
+  if (mbps >= 10) return "1080p HD";
+  if (mbps >= 5) return "720p";
+  return "SD";
+}
+
+function drawGraph() {
+    graph.clearRect(0, 0, 400, 100);
+    graph.beginPath();
+    graph.moveTo(0, 100);
+    speeds.forEach((s, i) => {
+        let x = i * (400 / 60);
+        let y = 100 - Math.min((s / currentMax * 80), 90);
+        graph.lineTo(x, y);
+    });
+    graph.lineTo((speeds.length - 1) * (400/60), 100);
+    graph.fillStyle = state.theme === 'light' ? "rgba(10, 124, 255, 0.05)" : "rgba(59, 158, 255, 0.08)";
+    graph.fill();
+
+    graph.beginPath();
+    speeds.forEach((s, i) => {
+        let x = i * (400 / 60);
+        let y = 100 - Math.min((s / currentMax * 80), 90);
+        if (i == 0) graph.moveTo(x, y);
+        else graph.lineTo(x, y);
+    });
+    graph.strokeStyle = state.theme === 'light' ? "#0a7cff" : "#3b9eff";
+    graph.lineWidth = 2;
+    graph.stroke();
+}
+
+async function pingTest() {
+    let arr = [];
+    for (let i = 0; i < 5; i++) {
+        let s = performance.now();
+        try {
+            await fetch("https://speed.cloudflare.com/__down?bytes=1", { cache: "no-store" });
+            arr.push(performance.now() - s);
+        } catch(e) {}
+    }
+    let avg = arr.reduce((a, b) => a + b) / arr.length;
+    let jitter = Math.sqrt(arr.map(x => (x - avg) ** 2).reduce((a, b) => a + b) / arr.length);
+    return { ping: Math.round(avg), jitter: Math.round(jitter) };
+}
+
+async function downloadTest(seconds, basePing) {
+    let start = performance.now();
+    let controller = new AbortController();
+    let bytes = 0;
+    let isAborted = false;
+    currentMax = 5; 
+
+    let bloatPings = [];
+    let bloatInterval = setInterval(async () => {
+        if (isAborted) return;
+        let s = performance.now();
+        try {
+            await fetch("https://speed.cloudflare.com/__down?bytes=1", { cache: "no-store" });
+            bloatPings.push(performance.now() - s);
+        } catch(e){}
+    }, 1000);
+
+    const timeout = setTimeout(() => {
+        isAborted = true;
+        controller.abort();
+    }, seconds * 1000);
+
+    try {
+        let r = await fetch("https://speed.cloudflare.com/__down?bytes=500000000", {
+            cache: "no-store",
+            signal: controller.signal
+        });
+        let reader = r.body.getReader();
+        
+        let timeLeft = seconds;
+        let countdown = setInterval(() => {
+            timeLeft--;
+            if (timeLeft >= 0) timerEl.innerText = dict[state.lang].testingTime + timeLeft + " ث";
+            if (timeLeft <= 0) clearInterval(countdown);
+        }, 1000);
+
+        while (!isAborted) {
+            let { done, value } = await reader.read();
+            if (done || isAborted) break;
+            bytes += value.length;
+            let t = (performance.now() - start) / 1000;
+            let speedMB = (bytes) / (1024 * 1024 * t);
+            
+            if (speedMB > currentMax * 0.8) currentMax = speedMB * 1.5;
+
+            speedEl.innerText = formatSpeed(speedMB);
+            qualityEl.innerText = quality(speedMB);
+            updateCalculators(speedMB);
+            speeds.push(speedMB);
+            if (speeds.length > 60) speeds.shift();
+            drawGraph();
+        }
+        clearInterval(countdown);
+    } catch (e) { } 
+    finally { 
+        clearTimeout(timeout); 
+        clearInterval(bloatInterval);
+    }
+
+    let totalTime = (performance.now() - start) / 1000;
+    let finalSpeedMB = (bytes) / (1024 * 1024 * totalTime);
+    lastFinalSpeed = finalSpeedMB;
+    
+    let avg = speeds.reduce((a, b) => a + b, 0) / speeds.length;
+    let stdev = Math.sqrt(speeds.map(x => (x - avg) ** 2).reduce((a, b) => a + b, 0) / speeds.length);
+    let stability = Math.max(0, 100 - (stdev / avg * 100));
+    let noise = (stdev / avg * 10).toFixed(1);
+
+    let avgBloat = bloatPings.length ? bloatPings.reduce((a,b)=>a+b,0)/bloatPings.length : basePing;
+    let bloatValue = Math.max(0, Math.round(avgBloat - basePing));
+
+    return { 
+      speed: finalSpeedMB, 
+      stability: stability.toFixed(0) + "%", 
+      noise: noise + " dB", 
+      bloat: bloatValue 
+    };
+}
+
+async function uploadTest(seconds) {
+    let start = performance.now();
+    let isAborted = false;
+    let bytes = 0;
+    const chunk = new Uint8Array(1024 * 1024 * 2); // 2 ميجا بايت دفق صافي
+
+    const timeout = setTimeout(() => { isAborted = true; }, seconds * 1000);
+
+    while (!isAborted) {
+        try {
+            await fetch("https://speed.cloudflare.com/__up", {
+                method: "POST",
+                body: chunk,
+                cache: "no-store"
+            });
+            bytes += chunk.length;
+            let t = (performance.now() - start) / 1000;
+            let speedMB = bytes / (1024 * 1024 * t);
+            speedEl.innerText = formatSpeed(speedMB);
+            speeds.push(speedMB);
+            if (speeds.length > 60) speeds.shift();
+            drawGraph();
+        } catch (e) { break; }
+    }
+    clearTimeout(timeout);
+    let finalTime = (performance.now() - start) / 1000;
+    return bytes / (1024 * 1024 * finalTime);
+}
+
+async function startTest(duration) {
+    btn.disabled = true;
+    btnPro.disabled = true;
+    speeds = [];
+    lastFinalSpeed = 0;
+    speedEl.innerText = "...";
+    timerEl.innerText = dict[state.lang].connecting;
+    
+    try {
+        let pj = await pingTest();
+        pingEl.innerText = pj.ping + " ms";
+        jitterEl.innerText = pj.jitter + " ms";
+
+        // تقسيم المدة الزمنية: 60% تحميل، 40% رفع
+        let downDuration = Math.ceil(duration * 0.6);
+        let upDuration = Math.floor(duration * 0.4);
+
+        let downResult = await downloadTest(downDuration, pj.ping);
+        downEl.innerText = formatSpeed(downResult.speed);
+        stabilityEl.innerText = downResult.stability;
+        noiseEl.innerText = downResult.noise;
+        document.getElementById("bufferbloat").innerText = "+" + downResult.bloat + " ms";
+        document.getElementById("video").innerText = estimateVideo(downResult.speed);
+        updateCalculators(downResult.speed);
+
+        timerEl.innerText = dict[state.lang].testingUp;
+        let upSpeed = await uploadTest(upDuration);
+        document.getElementById("up").innerText = formatSpeed(upSpeed);
+
+        // إعادة عرض النتيجة النهائية الصافية للتحميل بالعداد الرئيسي
+        speedEl.innerText = formatSpeed(downResult.speed);
+        qualityEl.innerText = quality(downResult.speed);
+
+        timerEl.innerText = dict[state.lang].ended;
+    } catch (e) {
+        timerEl.innerText = dict[state.lang].error;
+    }
+
+    btn.disabled = false;
+    btnPro.disabled = false;
+}
+
+btn.onclick = () => startTest(15);
+btnPro.onclick = () => startTest(30);
+
+// ==========================================
+// تشغيل واجهة المطورين الصافية المصغرة Micro-API
+// ==========================================
+async function runAPI() {
+    try {
+        let pj = await pingTest();
+        let downResult = await downloadTest(5, pj.ping);
+        let upSpeed = await uploadTest(4);
+        
+        let apiResult = {
+            status: "success",
+            timestamp: new Date().toISOString(),
+            engine: "Techovia Pro Engine",
+            metrics: {
+                ping_ms: pj.ping,
+                jitter_ms: pj.jitter,
+                stability: downResult.stability,
+                noise: downResult.noise,
+                bufferbloat_qos_ms: downResult.bloat,
+                download_speed_mbs: parseFloat(downResult.speed.toFixed(2)),
+                upload_speed_mbs: parseFloat(upSpeed.toFixed(2)),
+                video_compatibility: estimateVideo(downResult.speed).replace(/🎬/g, '').trim()
+            }
+        };
+        document.body.innerHTML = `<pre style="padding:20px; font-size:14px; white-space:pre-wrap; direction:ltr; text-align:left;">${JSON.stringify(apiResult, null, 2)}</pre>`;
+    } catch(e) {
+        document.body.innerHTML = `{"status": "error", "message": "${e.message}"}`;
+    }
+}
+
+if (window.location.search.includes('api=true')) {
+    document.body.style.background = "#0f0f11";
+    document.body.style.color = "#00ff66";
+    document.body.style.fontFamily = "monospace";
+    document.body.innerHTML = "<h3 style='padding:20px;'>Techovia API: Executing background test endpoint...</h3>";
+    runAPI();
+}
+</script>
+</body>
+  </html>
