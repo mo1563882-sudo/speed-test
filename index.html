@@ -858,42 +858,147 @@ const TechoviaApp = (function() {
     }
     
     async function runDownloadTest(seconds) {
-        let start = performance.now();
-        let totalBytes = 0;
-        let warmupBytes = 0;
-        let warmupTime = 0;
-        let isWarmup = true;
-        let isAborted = false;
-        let activePings = [];
-        let activeStreams = 0;
-        let failedStreams = 0;
-        state.currentMax = 5;
-        state.smoothedSpeed = 0;
+    let start = performance.now();
+    let totalBytes = 0;
+    let warmupBytes = 0;
+    let warmupTime = 0;
+    let isWarmup = true;
+    let isAborted = false;
+    let activePings = [];
+    let activeStreams = 0;
+    let failedStreams = 0;
+    state.currentMax = 5;
+    state.smoothedSpeed = 0;
+    
+    setWarmupIndicator(true);
+    
+    let controllers = [];
+    for (let i = 0; i < CONFIG.DOWNLOAD_STREAMS; i++) {
+        controllers.push(new AbortController());
+    }
+    
+    // ✅ FIX: Separate controller for bloat check
+    let bloatController = new AbortController();
+    let bloatLock = false;
+    let bloatInterval = setInterval(async () => {
+        if (bloatLock || isAborted) return;
+        bloatLock = true;
+        let ts = performance.now();
+        try {
+            await fetch(getNoCacheUrl(CONFIG.PING_URL), { 
+                cache: "no-store",
+                signal: bloatController.signal  // ✅ مستقل
+            });
+            activePings.push(performance.now() - ts);
+        } catch(e) {}
+        bloatLock = false;
+    }, CONFIG.BLOAT_CHECK_INTERVAL);
+    
+    const timeout = setTimeout(() => {
+        isAborted = true;
+        controllers.forEach(c => {
+            try { c.abort(); } catch(e) {}
+        });
+        bloatController.abort();  // ✅ إنهاء bloat controller
+        clearInterval(bloatInterval);
+    }, seconds * 1000);
+    
+    let fetchPromises = controllers.map(async (controller, idx) => {
+        activeStreams++;
+        try {
+            let r = await fetch(getNoCacheUrl(CONFIG.DOWNLOAD_URL, {bytes: CONFIG.DOWNLOAD_CHUNK_SIZE}), { 
+                cache: "no-store",
+                signal: controller.signal 
+            });
+            
+            if(r.body) {
+                let reader = r.body.getReader();
+                while (!isAborted) {
+                    let { done, value } = await reader.read();
+                    if (done || isAborted) break;
+                    totalBytes += value.length;
+                }
+            }
+        } catch (e) {
+            failedStreams++;
+            updateDevLog({ 
+                stream: idx + 1, 
+                status: "ended", 
+                error: e.name === 'AbortError' ? 'timeout' : e.message 
+            });
+        }
+    });
+    
+    let uiLoop = setInterval(() => {
+        if(isAborted && totalBytes === 0) { clearInterval(uiLoop); return; }
+        let now = performance.now();
+        let elapsed = (now - start) / 1000;
         
-        setWarmupIndicator(true);
+        let speedMB = elapsed > 0 ? (totalBytes) / (1024 * 1024 * elapsed) : 0;
         
-        // ✅ Create 8 independent controllers (no shared abort)
-        let controllers = [];
-        for (let i = 0; i < CONFIG.DOWNLOAD_STREAMS; i++) {
-            controllers.push(new AbortController());
+        if (speedMB > state.currentMax * 0.8) state.currentMax = Math.max(5, speedMB * 1.5);
+        
+        if (state.smoothedSpeed === 0) state.smoothedSpeed = speedMB;
+        else state.smoothedSpeed = (state.smoothedSpeed * (1 - CONFIG.SMOOTHING_FACTOR)) + (speedMB * CONFIG.SMOOTHING_FACTOR);
+        
+        displayMainSpeed(state.smoothedSpeed);
+        updateCalculators(state.smoothedSpeed);
+        
+        state.speeds.push(speedMB);
+        if (state.speeds.length > CONFIG.GRAPH_MAX_POINTS) state.speeds.shift();
+        drawGraph();
+        
+        if (isWarmup && elapsed >= CONFIG.WARMUP_SECONDS) {
+            warmupBytes = totalBytes;
+            warmupTime = elapsed;
+            isWarmup = false;
+            setWarmupIndicator(false);
+            updateDevLog({ status: "Warmup completed" });
         }
         
-        // Bufferbloat detection (using first controller only)
-        let bloatLock = false;
-        let bloatInterval = setInterval(async () => {
-            if (bloatLock || isAborted) return;
-            bloatLock = true;
-            let ts = performance.now();
-            try {
-                await fetch(getNoCacheUrl(CONFIG.PING_URL), { 
-                    cache: "no-store",
-                    signal: controllers[0].signal 
-                });
-                activePings.push(performance.now() - ts);
-            } catch(e) {}
-            bloatLock = false;
-        }, CONFIG.BLOAT_CHECK_INTERVAL);
+        updateProgress(Math.min((elapsed / seconds) * 60, 60));
         
+        if (isAborted) clearInterval(uiLoop);
+    }, CONFIG.UI_UPDATE_INTERVAL);
+    
+    await Promise.all(fetchPromises);
+    
+    clearInterval(uiLoop);
+    clearInterval(bloatInterval);
+    clearTimeout(timeout);
+    setWarmupIndicator(false);
+    
+    let totalTime = (performance.now() - start) / 1000;
+    
+    let effectiveBytes = totalBytes - warmupBytes;
+    let effectiveTime = totalTime - warmupTime;
+    let finalSpeedMB = effectiveTime > 0 ? (effectiveBytes) / (1024 * 1024 * effectiveTime) : 0;
+    
+    state.smoothedSpeed = finalSpeedMB;
+    displayMainSpeed(state.smoothedSpeed);
+    
+    let avgBloat = activePings.length ? activePings.reduce((a,b)=>a+b,0)/activePings.length : state.basePingMs;
+    let bloatDiff = Math.max(0, Math.round(avgBloat - state.basePingMs));
+    
+    let avg = state.speeds.reduce((a, b) => a + b, 0) / (state.speeds.length||1);
+    let stdev = Math.sqrt(state.speeds.map(x => (x - avg) ** 2).reduce((a, b) => a + b, 0) / (state.speeds.length||1));
+    let stability = Math.max(0, 100 - (stdev / (avg||1) * 100));
+    
+    updateDevLog({ 
+        phase: "Download Complete",
+        activeStreams: activeStreams,
+        failedStreams: failedStreams,
+        totalBytes: (totalBytes/1024/1024).toFixed(2) + " MB",
+        effectiveBytes: (effectiveBytes/1024/1024).toFixed(2) + " MB",
+        finalSpeed: finalSpeedMB.toFixed(2) + " MB/s"
+    });
+    
+    if (totalBytes === 0) {
+        throw new Error("All download streams failed");
+    }
+    
+    return { speed: finalSpeedMB, stability: stability.toFixed(0), bloat: bloatDiff };
+} 
         // Timeout - abort all streams
         const timeout = setTimeout(() => {
             isAborted = true;
