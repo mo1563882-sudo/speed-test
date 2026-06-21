@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="html-root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2563eb">
+<meta name="description" content="Techovia Speed Test - Advanced Internet Speed Testing Tool">
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Techovia">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%232563eb'/><path d='M30 50 L45 65 L70 35' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%232563eb'/><path d='M30 50 L45 65 L70 35' stroke='white' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+
+<link rel="manifest" id="manifestLink">
+
+<title>Techovia Speed Test v3.6</title>
+<style>
+:root {
+    --primary: #2563eb;
+    --primary-light: #eff6ff;
+    --bg: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --stat-bg: #f1f5f9;
+    --calc-bg: #f8fafc;
+    --graph-stroke: #3b82f6;
+    --graph-fill: rgba(59, 130, 246, 0.1);
+    --btn-sec: #475569;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --radius: 16px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+[data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-light: #1e293b;
+    --bg: #0b0f19;
+    --card-bg: #111827;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #1f2937;
+    --stat-bg: #1f2937;
+    --calc-bg: #111827;
+    --graph-stroke: #60a5fa;
+    --graph-fill: rgba(96, 165, 250, 0.15);
+    --btn-sec: #374151;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: var(--font);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 15px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 540px;
+    padding: 24px;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.3s ease;
+}
+
+.header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.controls-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+select, .icon-btn {
+    background: var(--stat-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: var(--font);
+    transition: all 0.2s;
+    outline: none;
+}
+.icon-btn:hover, select:hover { background: var(--border); }
+
+.title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-main);
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+.speed-display { text-align: center; padding: 10px 0; }
+
+.speed-value {
+    font-size: clamp(40px, 8vw, 56px);
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1px;
+    transition: all 0.3s ease;
+}
+
+.status-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.quality-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 12px;
+    transition: all 0.3s ease;
+}
+
+.graph-container {
+    position: relative;
+    background: var(--stat-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+canvas#graph {
+    width: 100%;
+    height: 120px;
+    display: block;
+}
+
+.graph-label {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+    background: var(--card-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.warmup-indicator {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 10px;
+    color: var(--warning);
+    background: var(--card-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    display: none;
+}
+
+.warmup-indicator.active { display: block; }
+
+.calc-section {
+    background: var(--calc-bg);
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.calc-row:last-child { margin-bottom: 0; }
+
+.calc-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.calc-val { font-size: 14px; font-weight: 700; color: var(--text-main); }
+
+input[type=range] { 
+    width: 100%; 
+    margin: 8px 0;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.metric-box {
+    background: var(--stat-bg);
+    padding: 12px 8px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+.metric-label { font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 500; }
+.metric-value { color: var(--text-main); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.metric-box.span-2 { grid-column: span 2; }
+.metric-box.highlight { border-color: var(--primary); background: var(--primary-light); }
+.metric-box.updated { animation: highlight 1s ease; }
+
+@keyframes highlight {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); box-shadow: 0 0 12px var(--primary); }
+    100% { transform: scale(1); }
+}
+
+.scores-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.score-row {
+    display: flex;
+    justify-content: space-between;
+    background: var(--stat-bg);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+.score-title { color: var(--text-muted); font-weight: 500; }
+.score-result { color: var(--text-main); font-weight: 700; }
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+button.btn-main, button.btn-sub {
+    width: 100%;
+    padding: 14px;
+    border: 0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
+    font-family: var(--font);
+}
+button.btn-main { background: var(--primary); color: #fff; }
+button.btn-main:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+button.btn-sub { background: var(--btn-sec); color: #fff; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:active:not(:disabled) { transform: translateY(1px); }
+
+.footer-links { display: flex; gap: 8px; }
+.footer-link {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+.footer-link:hover { background: var(--stat-bg); color: var(--text-main); }
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlide 0.3s ease;
+}
+
+@keyframes modalSlide {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.modal-close {
+    background: var(--stat-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.modal-close:hover { background: var(--border); }
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.dev-log {
+    background: #0f172a;
+    color: #10b981;
+    font-family: ui-monospace, "SF Mono", Monaco, "Cascadia Code", monospace;
+    font-size: 12px;
+    padding: 16px;
+    border-radius: 10px;
+    direction: ltr;
+    text-align: left;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+.api-section { direction: ltr; text-align: left; }
+
+.api-endpoint {
+    background: #1e293b;
+    color: #f43f5e;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-family: ui-monospace, monospace;
+    font-size: 13px;
+    margin: 12px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.api-endpoint code { flex: 1; word-break: break-all; }
+
+.api-copy-btn {
+    background: var(--primary);
+    color: #fff;
+    border: 0;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.api-copy-btn:hover { opacity: 0.9; }
+
+.api-info {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-top: 12px;
+}
+
+.api-example {
+    background: var(--stat-bg);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--text-main);
+    direction: ltr;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--stat-bg);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+@media (max-width: 480px) {
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .metric-box.span-2 { grid-column: span 1; }
+    .header-controls { flex-direction: column; align-items: stretch; }
+    .controls-group { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header-controls">
+        <select id="langSelect" onchange="TechoviaApp.changeLang(this.value)" aria-label="Language Selector">
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="es">Español</option>
+            <option value="tr">Türkçe</option>
+            <option value="nl">Nederlands</option>
+        </select>
+        <div class="controls-group">
+            <button class="icon-btn" onclick="TechoviaApp.openModal('api')" aria-label="API Documentation">APIs 🔗</button>
+            <button class="icon-btn" onclick="TechoviaApp.openModal('dev')" aria-label="Developer Panel">Dev ⚙️</button>
+            <button class="icon-btn" id="themeToggle" onclick="TechoviaApp.toggleTheme()" aria-label="Toggle Theme">Dark 🌙</button>
+        </div>
+    </div>
+
+    <div class="title">Techovia Speed Test</div>
+    
+    <div class="speed-display">
+        <div class="speed-value" id="speed">0.00</div>
+        <div class="status-text" id="statusUnit">MB/s</div>
+        <div class="status-text" id="timer" style="margin-top:4px;">جاهز للفحص</div>
+        <div class="quality-badge" id="quality">تقييم الاتصال: غير متاح</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    </div>
+
+    <div class="graph-container">
+        <canvas id="graph" aria-label="Speed Graph" role="img"></canvas>
+        <div class="graph-label" id="graphLabel">MB/s</div>
+        <div class="warmup-indicator" id="warmupIndicator">⏱️ WARMUP</div>
+    </div>
+
+    <div class="calc-section">
+        <div class="calc-row">
+            <span class="calc-label" data-i18n="time1gb">زمن تحميل 1 جيجابايت:</span>
+            <span class="calc-val" id="time1gb">--:--</span>
+        </div>
+        <div style="margin: 12px 0;">
+            <div class="calc-row">
+                <span class="calc-label"><span data-i18n="customSize">حجم مخصص:</span> <span id="sliderVal">1000</span> MB</span>
+                <span class="calc-val" id="customTime">--:--</span>
+            </div>
+            <input type="range" id="sizeSlider" min="10" max="10000" step="10" value="1000" aria-label="Custom Size Slider">
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-box span-2 highlight"><span class="metric-label" data-i18n="down">التحميل (Download)</span><span class="metric-value" id="down">-</span></div>
+        <div class="metric-box span-2 highlight"><span class="metric-label" data-i18n="up">الرفع (Upload)</span><span class="metric-value" id="up">-</span></div>
+        
+        <div class="metric-box"><span class="metric-label" data-i18n="ping">الاستجابة</span><span class="metric-value" id="ping">-</span></div>
+        <div class="metric-box"><span class="metric-label" data-i18n="jitter">التقلب</span><span class="metric-value" id="jitter">-</span></div>
+        <div class="metric-box"><span class="metric-label" data-i18n="bloat">Bufferbloat</span><span class="metric-value" id="bufferbloat">-</span></div>
+        <div class="metric-box"><span class="metric-label" data-i18n="stab">الاستقرار</span><span class="metric-value" id="stability">-</span></div>
+    </div>
+
+    <div class="scores-container">
+        <div class="score-row">
+            <span class="score-title" data-i18n="gaming">أداء الألعاب التنافسية</span>
+            <span class="score-result" id="scoreGaming">-</span>
+        </div>
+        <div class="score-row">
+            <span class="score-title" data-i18n="stream">جودة بث الفيديو</span>
+            <span class="score-result" id="scoreStream">-</span>
+        </div>
+        <div class="score-row">
+            <span class="score-title" data-i18n="videoSpeed">سرعة تشغيل الفيديو</span>
+            <span class="score-result" id="videoSpeed">-</span>
+        </div>
+        <div class="score-row">
+            <span class="score-title" data-i18n="videoRes">دقة الفيديو المناسبة</span>
+            <span class="score-result" id="videoResolution">-</span>
+        </div>
+        <div class="score-row">
+            <span class="score-title" data-i18n="calls">مكالمات الفيديو (Zoom/Meet)</span>
+            <span class="score-result" id="scoreCalls">-</span>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button id="btn" class="btn-main" data-i18n="btnQuick" aria-label="Start Quick Test">بدء الفحص السريع (15ث)</button>
+        <button id="btnPro" class="btn-sub" data-i18n="btnPro" aria-label="Start Deep Test">بدء الفحص العميق (30ث)</button>
+        
+        <div class="footer-links">
+            <button class="footer-link" onclick="TechoviaApp.copyResults()" data-i18n="copy">نسخ التقرير</button>
+            <button class="footer-link" onclick="TechoviaApp.exportJSON()" data-i18n="export">تصدير JSON</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="devModal" onclick="if(event.target===this) TechoviaApp.closeModal('dev')">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">🛠️ Developer Console</div>
+            <button class="modal-close" onclick="TechoviaApp.closeModal('dev')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="dev-log" id="devPanel">Log initialized...</div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="apiModal" onclick="if(event.target===this) TechoviaApp.closeModal('api')">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">🔗 Techovia Mini API v1.0</div>
+            <button class="modal-close" onclick="TechoviaApp.closeModal('api')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="api-section">
+                <div class="api-info">
+                    <strong>Access Test Results Programmatically</strong><br>
+                    Retrieve the latest speed test results directly from the browser console.
+                </div>
+                
+                <div class="api-endpoint">
+                    <code>window.TechoviaAPI.results</code>
+                    <button class="api-copy-btn" onclick="TechoviaApp.copyToClipboard('window.TechoviaAPI.results')">Copy</button>
+                </div>
+
+                <div class="api-info">
+                    <strong>Response Structure:</strong>
+                </div>
+                <div class="api-example">{
+  "ping": 0,
+  "jitter": 0,
+  "bufferbloat": 0,
+  "download": 0,
+  "upload": 0,
+  "stability": 0,
+  "timestamp": "2026-06-19T..."
+}</div>
+
+                <div class="api-info" style="margin-top: 16px;">
+                    <strong>Usage Example:</strong>
+                </div>
+                <div class="api-example">const results = window.TechoviaAPI.results;
+console.log(`Download: ${results.download} MB/s`);
+console.log(`Upload: ${results.upload} MB/s`);
+console.log(`Ping: ${results.ping} ms`);</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== Techovia Speed Test v3.6 ====================
+const TechoviaApp = (function() {
+    'use strict';
+    
+    // ==================== CONFIGURATION ====================
+    const CONFIG = {
+        DOWNLOAD_STREAMS: 8,
+        UPLOAD_STREAMS: 4,
+        DOWNLOAD_CHUNK_SIZE: 100 * 1024 * 1024,
+        UPLOAD_CHUNK_SIZE: 2 * 1024 * 1024,
+        PING_COUNT: 5,
+        WARMUP_SECONDS: 3,
+        UI_UPDATE_INTERVAL: 250,
+        BLOAT_CHECK_INTERVAL: 1000,
+        GRAPH_MAX_POINTS: 60,
+        GRAPH_HEIGHT: 120,
+        SMOOTHING_FACTOR: 0.3,
+        DOWNLOAD_URL: 'https://speed.cloudflare.com/__down',
+        UPLOAD_URL: 'https://speed.cloudflare.com/__up',
+        PING_URL: 'https://speed.cloudflare.com/__down?bytes=0'
+    };
+    
+    // ==================== STATE ====================
+    let state = {
+        speeds: [],
+        currentMax: 5,
+        lastFinalSpeed: 0,
+        basePingMs: 0,
+        smoothedSpeed: 0,
+        isRunning: false,
+        currentLang: localStorage.getItem('techovia_lang') || (navigator.language.startsWith('ar') ? 'ar' : 'en'),
+        isDark: localStorage.getItem('techovia_theme') === 'dark',
+        results: { 
+            ping: 0, 
+            jitter: 0, 
+            bufferbloat: 0, 
+            download: 0, 
+            upload: 0, 
+            stability: 0, 
+            timestamp: null 
+        }
+    };
+    
+    // ==================== TRANSLATIONS ====================
+    const translations = {
+        ar: { time1gb: "زمن تحميل 1 جيجابايت:", customSize: "حجم مخصص:", ping: "الاستجابة", jitter: "التقلب", bloat: "Bufferbloat", stab: "الاستقرار", down: "التحميل (Download)", up: "الرفع (Upload)", gaming: "أداء الألعاب التنافسية", stream: "جودة بث الفيديو", videoSpeed: "سرعة تشغيل الفيديو", videoRes: "دقة الفيديو المناسبة", calls: "مكالمات الفيديو (Zoom/Meet)", btnQuick: "بدء الفحص السريع (15ث)", btnPro: "بدء الفحص العميق (30ث)", copy: "نسخ التقرير", export: "تصدير JSON", ready: "جاهز للفحص", conn: "جاري تحليل الاتصال...", downing: "جاري قياس السرعة...", uping: "جاري القياس...", done: "اكتمل الفحص", err: "فشل الاتصال بالخادم", qGood: "جودة الاتصال: ممتازة", qAvg: "جودة الاتصال: متوسطة", qBad: "جودة الاتصال: ضعيفة", st4k: "ممتاز لـ 4K", stHd: "جيد جداً لـ 1080p", stSd: "متوسط لـ 720p", stBad: "ضعيف (SD)", gPro: "احترافي (تأخير منخفض)", gStab: "مستقر (جيد)", gLag: "غير مستقر (Lag)", cExcel: "ممتاز (بدون تقطيع)", cGood: "جيد", cBad: "ضعيف للاتصال المرئي" },
+        en: { time1gb: "1GB Download Time:", customSize: "Custom Size:", ping: "Ping", jitter: "Jitter", bloat: "Bufferbloat", stab: "Stability", down: "Download", up: "Upload", gaming: "Competitive Gaming", stream: "Video Streaming", videoSpeed: "Video Playback Speed", videoRes: "Suitable Video Resolution", calls: "Video Calls (Zoom/Meet)", btnQuick: "Quick Test (15s)", btnPro: "Deep Test (30s)", copy: "Copy Report", export: "Export JSON", ready: "Ready to test", conn: "Connecting...", downing: "Testing Speed...", uping: "Testing...", done: "Test Completed", err: "Connection Error", qGood: "Connection Quality: Excellent", qAvg: "Connection Quality: Average", qBad: "Connection Quality: Poor", st4k: "4K Ready", stHd: "1080p HD Ready", stSd: "720p SD Quality", stBad: "Poor (SD)", gPro: "Pro (Low Ping)", gStab: "Stable", gLag: "Unstable (Lag)", cExcel: "Excellent (Clear)", cGood: "Good", cBad: "Poor Quality" },
+        fr: { time1gb: "Temps pour 1 Go:", customSize: "Taille:", ping: "Latence", jitter: "Gigue", bloat: "Bufferbloat", stab: "Stabilité", down: "Téléchargement", up: "Envoi", gaming: "Jeu Compétitif", stream: "Streaming Vidéo", videoSpeed: "Vitesse vidéo", videoRes: "Résolution adaptée", calls: "Appels Vidéo", btnQuick: "Test Rapide (15s)", btnPro: "Test Profond (30s)", copy: "Copier", export: "Exporter JSON", ready: "Prêt", conn: "Connexion...", downing: "Vérification...", uping: "En cours...", done: "Terminé", err: "Erreur", qGood: "Qualité: Excellente", qAvg: "Qualité: Moyenne", qBad: "Qualité: Faible", st4k: "Prêt pour 4K", stHd: "HD 1080p", stSd: "SD 720p", stBad: "Faible (SD)", gPro: "Pro (Ping Bas)", gStab: "Stable", gLag: "Instable (Lag)", cExcel: "Excellent", cGood: "Bon", cBad: "Médiocre" },
+        de: { time1gb: "1GB Downloadzeit:", customSize: "Benutzerdefiniert:", ping: "Ping", jitter: "Jitter", bloat: "Bufferbloat", stab: "Stabilität", down: "Download", up: "Upload", gaming: "Gaming", stream: "Video-Streaming", videoSpeed: "Video-Geschwindigkeit", videoRes: "Videoauflösung", calls: "Videoanrufe", btnQuick: "Schnelltest (15s)", btnPro: "Tiefentest (30s)", copy: "Kopieren", export: "Exportieren", ready: "Bereit", conn: "Verbinde...", downing: "Prüfen...", uping: "Prüfen...", done: "Abgeschlossen", err: "Fehler", qGood: "Qualität: Hervorragend", qAvg: "Qualität: Durchschnitt", qBad: "Qualität: Schlecht", st4k: "4K Bereit", stHd: "1080p HD", stSd: "720p SD", stBad: "Schlecht (SD)", gPro: "Pro (Niedriger Ping)", gStab: "Stabil", gLag: "Instabil (Lag)", cExcel: "Ausgezeichnet", cGood: "Gut", cBad: "Schlecht" },
+        es: { time1gb: "Tiempo para 1GB:", customSize: "Tamaño:", ping: "Ping", jitter: "Fluctuación", bloat: "Bufferbloat", stab: "Estabilidad", down: "Descarga", up: "Subida", gaming: "Juegos", stream: "Streaming", videoSpeed: "Velocidad de video", videoRes: "Resolución de video", calls: "Videollamadas", btnQuick: "Prueba rápida", btnPro: "Prueba profunda", copy: "Copiar", export: "Exportar", ready: "Listo", conn: "Conectando...", downing: "Probando...", uping: "Probando...", done: "Completado", err: "Error", qGood: "Calidad: Excelente", qAvg: "Calidad: Media", qBad: "Calidad: Pobre", st4k: "Listo para 4K", stHd: "1080p HD", stSd: "720p SD", stBad: "Mala (SD)", gPro: "Pro (Ping Bajo)", gStab: "Estable", gLag: "Inestable (Lag)", cExcel: "Excelente", cGood: "Bueno", cBad: "Malo" },
+        tr: { time1gb: "1GB İndirme Süresi:", customSize: "Özel Boyut:", ping: "Ping", jitter: "Jitter", bloat: "Bufferbloat", stab: "Kararlılık", down: "İndirme", up: "Yükleme", gaming: "Oyun", stream: "Yayın", videoSpeed: "Video Hızı", videoRes: "Video Çözünürlüğü", calls: "Görüntülü Arama", btnQuick: "Hızlı Test", btnPro: "Derin Test", copy: "Kopyala", export: "Dışa Aktar", ready: "Hazır", conn: "Bağlanıyor...", downing: "Test ediliyor...", uping: "Test ediliyor...", done: "Tamamlandı", err: "Hata", qGood: "Kalite: Mükemmel", qAvg: "Kalite: Orta", qBad: "Kalite: Zayıf", st4k: "4K Uyumlu", stHd: "1080p HD", stSd: "720p SD", stBad: "Zayıf (SD)", gPro: "Profesyonel (Düşük Ping)", gStab: "Kararlı", gLag: "Kararsız (Lag)", cExcel: "Mükemmel (Kesintisiz)", cGood: "İyi", cBad: "Görüntülü İçin Zayıf" },
+        nl: { time1gb: "1GB Download Tijd:", customSize: "Grootte:", ping: "Ping", jitter: "Jitter", bloat: "Bufferbloat", stab: "Stabiliteit", down: "Download", up: "Upload", gaming: "Gaming", stream: "Streaming", videoSpeed: "Videosnelheid", videoRes: "Videoresolutie", calls: "Videobellen", btnQuick: "Snel Test", btnPro: "Diep Test", copy: "Kopiëren", export: "Exporteren", ready: "Klaar", conn: "Verbunden...", downing: "Testen...", uping: "Testen...", done: "Voltooid", err: "Fout", qGood: "Kwaliteit: Uitstekend", qAvg: "Kwaliteit: Gemiddeld", qBad: "Kwaliteit: Slecht", st4k: "4K Gereed", stHd: "1080p HD", stSd: "720p SD", stBad: "Slecht (SD)", gPro: "Pro (Lage Ping)", gStab: "Stabiel", gLag: "Onstabiel (Lag)", cExcel: "Uitstekend", cGood: "Goed", cBad: "Slecht" }
+    };
+    
+    // ==================== UTILITY FUNCTIONS ====================
+    function getTxt(key) { return translations[state.currentLang][key] || translations['en'][key]; }
+    
+    function formatTime(seconds) {
+        if (isNaN(seconds) || seconds === Infinity || seconds <= 0) return "--:--";
+        let h = Math.floor(seconds / 3600), m = Math.floor((seconds % 3600) / 60), s = Math.floor(seconds % 60);
+        return h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
+    }
+    
+    function formatStat(mbs) { return mbs >= 1 ? mbs.toFixed(2) + " MB/s" : (mbs * 1024).toFixed(0) + " KB/s"; }
+    
+    function getNoCacheUrl(baseUrl, params = {}) {
+        const url = new URL(baseUrl);
+        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+        url.searchParams.append('_t', Date.now() + Math.random());
+        return url.toString();
+    }
+    
+    function updateDevLog(data) {
+        const p = document.getElementById('devPanel');
+        const timeStr = new Date().toLocaleTimeString();
+        const existing = p.innerText || '';
+        p.innerHTML = `[${timeStr}] ${JSON.stringify(data, null, 2)}\n\n${existing}`;
+    }
+    
+    function highlightElement(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.add('updated');
+        setTimeout(() => el.classList.remove('updated'), 1000);
+    }
+    
+    // دالة جلب مع مؤقت صارم لمنع التعليق
+    async function fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeoutMs);
+        
+        if (options.signal) {
+            options.signal.addEventListener('abort', () => controller.abort());
+        }
+        
+        try {
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            clearTimeout(id);
+            return response;
+        } catch (error) {
+            clearTimeout(id);
+            throw error;
+        }
+    }
+    
+    // ==================== UI FUNCTIONS ====================
+    function displayMainSpeed(mbs) {
+        const speedEl = document.getElementById("speed");
+        const unitEl = document.getElementById("statusUnit");
+        
+        if (mbs >= 1) {
+            speedEl.innerText = mbs.toFixed(2);
+            unitEl.innerText = "MB/s";
+        } else {
+            speedEl.innerText = (mbs * 1024).toFixed(0);
+            unitEl.innerText = "KB/s";
+        }
+    }
+    
+    function updateCalculators(speedMB) {
+        if (speedMB <= 0) return;
+        document.getElementById('time1gb').innerText = formatTime(1024 / speedMB);
+        document.getElementById('customTime').innerText = formatTime(document.getElementById('sizeSlider').value / speedMB);
+    }
+    
+    function updateProgress(percent) {
+        document.getElementById('progress').style.width = percent + '%';
+    }
+    
+    function setWarmupIndicator(active) {
+        const indicator = document.getElementById('warmupIndicator');
+        if (active) indicator.classList.add('active');
+        else indicator.classList.remove('active');
+    }
+    
+    function drawGraph() {
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        
+        canvas.width = canvas.clientWidth * dpr;
+        canvas.height = CONFIG.GRAPH_HEIGHT * dpr;
+        ctx.scale(dpr, dpr);
+        
+        const width = canvas.clientWidth;
+        const height = CONFIG.GRAPH_HEIGHT;
+        
+        ctx.clearRect(0, 0, width, height);
+        
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+        const strokeColor = isDarkMode ? "#60a5fa" : "#3b82f6";
+        const fillColor = isDarkMode ? "rgba(96, 165, 250, 0.15)" : "rgba(59, 130, 246, 0.1)";
+        const gridColor = isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)";
+        
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        for(let i = 30; i < height; i += 30) {
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke();
+        }
+        for(let i = 50; i < width; i += 50) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, height); ctx.stroke();
+        }
+        
+        if (!state.speeds.length) return;
+        
+        const points = state.speeds.map((s, i) => ({
+            x: i * (width / (state.speeds.length - 1 || 1)),
+            y: height - Math.min((s / state.currentMax * (height - 20)), height - 10)
+        }));
+        
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, fillColor);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, height);
+        ctx.lineTo(points[0].x, points[0].y);
+        
+        for (let i = 1; i < points.length; i++) {
+            const prev = points[i - 1];
+            const curr = points[i];
+            const cpx = (prev.x + curr.x) / 2;
+            ctx.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
+        }
+        
+        ctx.lineTo(points[points.length - 1].x, height);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            const prev = points[i - 1];
+            const curr = points[i];
+            const cpx = (prev.x + curr.x) / 2;
+            ctx.bezierCurveTo(cpx, prev.y, cpx, curr.y, curr.x, curr.y);
+        }
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+    }
+    
+    function calcScoresText(dMbs, uMbs, ping, jitter, bloat) {
+        let q = dMbs > 10 ? getTxt('qGood') : dMbs > 3 ? getTxt('qAvg') : getTxt('qBad');
+        document.getElementById('quality').innerText = q;
+        document.getElementById('scoreStream').innerText = dMbs > 25 ? getTxt('st4k') : dMbs > 10 ? getTxt('stHd') : dMbs > 3 ? getTxt('stSd') : getTxt('stBad');
+        
+        let totalLat = ping + jitter + bloat;
+        document.getElementById('scoreGaming').innerText = totalLat < 50 ? getTxt('gPro') : totalLat < 100 ? getTxt('gStab') : getTxt('gLag');
+        document.getElementById('scoreCalls').innerText = (uMbs > 2 && dMbs > 5 && ping < 100) ? getTxt('cExcel') : (uMbs > 0.5 && dMbs > 2) ? getTxt('cGood') : getTxt('cBad');
+        
+        let mbps = dMbs * 8;
+        document.getElementById('videoSpeed').innerText = mbps.toFixed(1) + " Mbps";
+        
+        let resText = "";
+        if (mbps >= 25) resText = "2160p (4K), 1080p, 720p, 480p";
+        else if (mbps >= 5) resText = "1080p (Full HD), 720p, 480p, 360p";
+        else if (mbps >= 2.5) resText = "720p (HD), 480p, 360p, 240p";
+        else if (mbps >= 1) resText = "480p, 360p, 240p";
+        else resText = "240p, 144p";
+        document.getElementById('videoResolution').innerText = resText;
+        
+        return q;
+    }
+    
+    // ==================== TEST FUNCTIONS ====================
+    async function runPingTest() {
+        let arr = [];
+        
+        try {
+            await fetchWithTimeout(getNoCacheUrl(CONFIG.PING_URL), { 
+                cache: "no-store",
+                priority: "high" 
+            }, 3000);
+        } catch(e) {}
+        
+        for (let i = 0; i < CONFIG.PING_COUNT; i++) {
+            let s = performance.now();
+            try {
+                await fetchWithTimeout(getNoCacheUrl(CONFIG.PING_URL), { 
+                    cache: "no-store",
+                    priority: "high" 
+                }, 3000);
+                arr.push(performance.now() - s);
+            } catch(e) {}
+        }
+        
+        let avg = arr.length ? arr.reduce((a, b) => a + b) / arr.length : 0;
+        let jitter = arr.length ? Math.sqrt(arr.map(x => (x - avg) ** 2).reduce((a, b) => a + b) / arr.length) : 0;
+        state.basePingMs = avg;
+        return { ping: Math.round(avg), jitter: Math.round(jitter) };
+    }
+    
+    // ✅ Main Foreground Test (Download - drives main UI & Graph)
+    async function runDownloadTest(seconds) {
+        let start = performance.now();
+        let totalBytes = 0;
+        let warmupBytes = 0;
+        let warmupTime = 0;
+        let isWarmup = true;
+        let isAborted = false;
+        let activePings = [];
+        state.currentMax = 5;
+        state.smoothedSpeed = 0;
+        
+        setWarmupIndicator(true);
+        
+        let bloatController = new AbortController();
+        let bloatLock = false;
+        let bloatInterval = setInterval(async () => {
+            if (bloatLock || isAborted) return;
+            bloatLock = true;
+            let ts = performance.now();
+            try {
+                await fetchWithTimeout(getNoCacheUrl(CONFIG.PING_URL), { 
+                    cache: "no-store",
+                    signal: bloatController.signal
+                }, 3000);
+                activePings.push(performance.now() - ts);
+            } catch(e) {}
+            bloatLock = false;
+        }, CONFIG.BLOAT_CHECK_INTERVAL);
+        
+        const timeout = setTimeout(() => {
+            isAborted = true;
+            bloatController.abort();
+            clearInterval(bloatInterval);
+        }, seconds * 1000);
+        
+        let streamPromises = [];
+        for (let i = 0; i < CONFIG.DOWNLOAD_STREAMS; i++) {
+            streamPromises.push((async () => {
+                try {
+                    let r = await fetch(getNoCacheUrl(CONFIG.DOWNLOAD_URL, {bytes: CONFIG.DOWNLOAD_CHUNK_SIZE}), { 
+                        cache: "no-store"
+                    });
+                    
+                    if(r.body) {
+                        let reader = r.body.getReader();
+                        while (!isAborted) {
+                            try {
+                                let { done, value } = await reader.read();
+                                if (done || isAborted) break;
+                                totalBytes += value.length;
+                            } catch(err) { break; }
+                        }
+                        reader.releaseLock();
+                    }
+                } catch (e) { }
+            })());
+        }
+        
+        let uiLoop = setInterval(() => {
+            if(isAborted && totalBytes === 0) { clearInterval(uiLoop); return; }
+            let now = performance.now();
+            let elapsed = (now - start) / 1000;
+            
+            let speedMB = elapsed > 0 ? (totalBytes) / (1024 * 1024 * elapsed) : 0;
+            
+            if (speedMB > state.currentMax * 0.8) state.currentMax = Math.max(5, speedMB * 1.5);
+            
+            if (state.smoothedSpeed === 0) state.smoothedSpeed = speedMB;
+            else state.smoothedSpeed = (state.smoothedSpeed * (1 - CONFIG.SMOOTHING_FACTOR)) + (speedMB * CONFIG.SMOOTHING_FACTOR);
+            
+            displayMainSpeed(state.smoothedSpeed);
+            updateCalculators(state.smoothedSpeed);
+            
+            state.speeds.push(speedMB);
+            if (state.speeds.length > CONFIG.GRAPH_MAX_POINTS) state.speeds.shift();
+            drawGraph();
+            
+            if (isWarmup && elapsed >= CONFIG.WARMUP_SECONDS) {
+                warmupBytes = totalBytes;
+                warmupTime = elapsed;
+                isWarmup = false;
+                setWarmupIndicator(false);
+            }
+            
+            updateProgress(Math.min((elapsed / seconds) * 100, 100));
+            
+            if (isAborted) clearInterval(uiLoop);
+        }, CONFIG.UI_UPDATE_INTERVAL);
+        
+        await Promise.all(streamPromises);
+        
+        clearInterval(uiLoop);
+        clearInterval(bloatInterval);
+        clearTimeout(timeout);
+        setWarmupIndicator(false);
+        
+        let totalTime = (performance.now() - start) / 1000;
+        
+        let effectiveBytes = totalBytes - warmupBytes;
+        let effectiveTime = totalTime - warmupTime;
+        let finalSpeedMB = effectiveTime > 0 ? (effectiveBytes) / (1024 * 1024 * effectiveTime) : 0;
+        
+        state.smoothedSpeed = finalSpeedMB;
+        displayMainSpeed(state.smoothedSpeed);
+        
+        let avgBloat = activePings.length ? activePings.reduce((a,b)=>a+b,0)/activePings.length : state.basePingMs;
+        let bloatDiff = Math.max(0, Math.round(avgBloat - state.basePingMs));
+        
+        let avg = state.speeds.reduce((a, b) => a + b, 0) / (state.speeds.length||1);
+        let stdev = Math.sqrt(state.speeds.map(x => (x - avg) ** 2).reduce((a, b) => a + b, 0) / (state.speeds.length||1));
+        let stability = Math.max(0, 100 - (stdev / (avg||1) * 100));
+        
+        return { speed: finalSpeedMB, stability: stability.toFixed(0), bloat: bloatDiff };
+    }
+    
+    // ✅ Independent Background Test (Upload)
+    async function runUploadTest(seconds) {
+        let start = performance.now();
+        let totalBytes = 0;
+        let warmupBytes = 0;
+        let warmupTime = 0;
+        let isWarmup = true;
+        let isAborted = false;
+        
+        let upCurrentMax = 5;
+        let upSmoothedSpeed = 0;
+        
+        document.getElementById('up').innerHTML = '<span style="font-size:12px; opacity:0.7;">' + getTxt('uping') + '</span>';
+        
+        const chunk = new Uint8Array(CONFIG.UPLOAD_CHUNK_SIZE);
+        crypto.getRandomValues(chunk);
+        
+        const timeout = setTimeout(() => { isAborted = true; }, seconds * 1000);
+        
+        let uiLoop = setInterval(() => {
+            if(isAborted) { clearInterval(uiLoop); return; }
+            let now = performance.now();
+            let elapsed = (now - start) / 1000;
+            let speedMB = elapsed > 0 ? (totalBytes) / (1024 * 1024 * elapsed) : 0;
+            
+            if (upSmoothedSpeed === 0) upSmoothedSpeed = speedMB;
+            else upSmoothedSpeed = (upSmoothedSpeed * (1 - CONFIG.SMOOTHING_FACTOR)) + (speedMB * CONFIG.SMOOTHING_FACTOR);
+            
+            if (elapsed > 1) {
+                document.getElementById('up').innerText = formatStat(upSmoothedSpeed);
+            }
+            
+            if (isWarmup && elapsed >= CONFIG.WARMUP_SECONDS) {
+                warmupBytes = totalBytes;
+                warmupTime = elapsed;
+                isWarmup = false;
+            }
+        }, CONFIG.UI_UPDATE_INTERVAL);
+        
+        let uploadPromises = [];
+        for (let i = 0; i < CONFIG.UPLOAD_STREAMS; i++) {
+            uploadPromises.push((async () => {
+                while(!isAborted) {
+                    try {
+                        await fetch(getNoCacheUrl(CONFIG.UPLOAD_URL), { 
+                            method: "POST", 
+                            body: chunk,
+                            cache: "no-store"
+                        });
+                        totalBytes += chunk.length;
+                    } catch(e) { await new Promise(r => setTimeout(r, 200)); }
+                }
+            })());
+        }
+        
+        await Promise.all(uploadPromises);
+        clearInterval(uiLoop);
+        clearTimeout(timeout);
+        
+        let totalTime = (performance.now() - start) / 1000;
+        let effectiveBytes = totalBytes - warmupBytes;
+        let effectiveTime = totalTime - warmupTime;
+        let finalUploadSpeedMB = effectiveTime > 0 ? (effectiveBytes) / (1024 * 1024 * effectiveTime) : 0;
+        document.getElementById('up').innerText = formatStat(finalUploadSpeedMB);
+        
+        return { speed: finalUploadSpeedMB };
+    }
+    
+    // ✅ Main Test Manager
+    async function startTest(duration) {
+        if (state.isRunning) return;
+        state.isRunning = true;
+        
+        document.getElementById('btn').disabled = true;
+        document.getElementById('btnPro').disabled = true;
+        state.speeds = [];
+        displayMainSpeed(0);
+        updateProgress(0);
+        document.getElementById('timer').innerText = getTxt('conn');
+        
+        try {
+            let pj = await runPingTest();
+            document.getElementById('ping').innerText = pj.ping + " ms";
+            document.getElementById('jitter').innerText = pj.jitter + " ms";
+            
+            document.getElementById('timer').innerText = getTxt('downing');
+            
+            // Execute in parallel safely
+            let [downRes, upRes] = await Promise.all([
+                runDownloadTest(duration),
+                runUploadTest(duration)
+            ]);
+            
+            document.getElementById('down').innerText = formatStat(downRes.speed);
+            document.getElementById('stability').innerText = downRes.stability + "%";
+            document.getElementById('bufferbloat').innerText = "+" + downRes.bloat + " ms";
+            
+            state.results.download = Number(downRes.speed.toFixed(2));
+            state.results.upload = Number(upRes.speed.toFixed(2));
+            state.results.ping = pj.ping;
+            state.results.jitter = pj.jitter;
+            state.results.bufferbloat = downRes.bloat;
+            state.results.stability = Number(downRes.stability);
+            
+            calcScoresText(downRes.speed, upRes.speed, pj.ping, pj.jitter, downRes.bloat);
+            displayMainSpeed(downRes.speed);
+            document.getElementById('timer').innerText = getTxt('done');
+            updateProgress(100);
+            
+            state.results.timestamp = new Date().toISOString();
+        } catch (e) {
+            document.getElementById('timer').innerText = getTxt('err');
+        }
+        
+        document.getElementById('btn').disabled = false;
+        document.getElementById('btnPro').disabled = false;
+        state.isRunning = false;
+    }
+    
+    function setupPWA() {
+        const manifestObj = {
+            "name": "Techovia Speed Test",
+            "short_name": "Techovia",
+            "description": "Advanced Internet Speed Testing Tool",
+            "start_url": "./",
+            "scope": "./",
+            "display": "standalone",
+            "orientation": "portrait",
+            "background_color": "#f8fafc",
+            "theme_color": "#2563eb",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='240' fill='%232563eb'/><path d='M150 256 L220 326 L362 184' stroke='white' stroke-width='40' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>",
+                    "sizes": "512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], {type: 'application/manifest+json'});
+        document.getElementById('manifestLink').setAttribute('href', URL.createObjectURL(manifestBlob));
+    }
+    
+    return {
+        init: function() {
+            if (state.isDark) document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('themeToggle').innerText = state.isDark ? "Light ☀️" : "Dark 🌙";
+            document.getElementById('langSelect').value = state.currentLang;
+            document.getElementById('sizeSlider').oninput = () => {
+                document.getElementById('sliderVal').innerText = document.getElementById('sizeSlider').value;
+                if (state.lastFinalSpeed > 0) updateCalculators(state.lastFinalSpeed);
+            };
+            document.getElementById('btn').onclick = () => startTest(15);
+            document.getElementById('btnPro').onclick = () => startTest(30);
+            window.addEventListener('resize', drawGraph);
+            window.TechoviaAPI = { results: state.results };
+            setupPWA();
+            this.changeLang(state.currentLang);
+            drawGraph();
+        },
+        changeLang: function(l) {
+            state.currentLang = translations[l] ? l : 'en';
+            localStorage.setItem('techovia_lang', state.currentLang);
+            document.documentElement.lang = state.currentLang;
+            document.documentElement.dir = state.currentLang === 'ar' ? 'rtl' : 'ltr';
+            document.querySelectorAll('[data-i18n]').forEach(el => { el.innerText = getTxt(el.getAttribute('data-i18n')); });
+            document.getElementById('timer').innerText = getTxt('ready');
+        },
+        toggleTheme: function() {
+            state.isDark = !state.isDark;
+            document.documentElement.setAttribute('data-theme', state.isDark ? 'dark' : 'light');
+            localStorage.setItem('techovia_theme', state.isDark ? 'dark' : 'light');
+            document.getElementById('themeToggle').innerText = state.isDark ? "Light ☀️" : "Dark 🌙";
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', state.isDark ? '#0b0f19' : '#2563eb');
+            drawGraph();
+        },
+        openModal: function(type) { document.getElementById(type + 'Modal').classList.add('active'); },
+        closeModal: function(type) { document.getElementById(type + 'Modal').classList.remove('active'); },
+        copyToClipboard: function(text) { navigator.clipboard.writeText(text); },
+        copyResults: function() {
+            let res = state.results;
+            let text = `Techovia Speed Test\nDown: ${res.download} MB/s\nUp: ${res.upload} MB/s\nPing: ${res.ping}ms\nJitter: ${res.jitter}ms\nBufferbloat: +${res.bufferbloat}ms\nStability: ${res.stability}%\nTimestamp: ${res.timestamp}`;
+            navigator.clipboard.writeText(text);
+        },
+        exportJSON: function() {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.results, null, 2));
+            let node = document.createElement('a');
+            node.setAttribute("href", dataStr);
+            node.setAttribute("download", `techovia_report_${Date.now()}.json`);
+            document.body.appendChild(node);
+            node.click();
+            node.remove();
+        }
+    };
+})();
+window.TechoviaApp = TechoviaApp;
+document.addEventListener('DOMContentLoaded', () => TechoviaApp.init());
+</script>
+</body>
+</html>
