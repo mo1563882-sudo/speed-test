@@ -1,4 +1,4 @@
-# ⚡ Techovia Speed Test V8
+# ⚡ Techovia Speed Test V11.0
 
 A professional, high-precision internet benchmarking utility designed for developers, network engineers, and power users who require reliable, real-time performance insights.
 
