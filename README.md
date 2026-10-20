@@ -61,7 +61,8 @@ const history = window.TechoviaAPI.history;
 window.TechoviaAPI.start();
 ```
 
----
+## 🚀 Try the Tool Now
+**[Click Here to Launch Techovia Speed Test](https://mo1563882-sudo.github.io/speed-test/)**---
 
 ## 🌐 Browser Support
 
